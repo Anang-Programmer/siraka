@@ -1,10 +1,39 @@
-const Page = () => {
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-between p-24">
-      <h1 className="text-3xl font-bold underline">Hello world!</h1>
-      <h2>Tes Branch Jaka</h2>
-    </div>
-  );
+
+import { Suspense, type ReactNode } from "react";
+import { redirect } from "next/navigation";
+import { connection } from "next/server";
+import { getCurrentProfile } from "@/lib/auth/get-current-profile";
+
+
+async function HomeRedirect(): Promise<ReactNode> {
+  await connection();
+  const result = await getCurrentProfile();
+
+  if (!result) {
+    redirect("/login");
+  }
+
+  const routes = {
+    admin: "/dashboard/admin",
+    komting: "/dashboard/komting",
+    mahasiswa: "/dashboard/mahasiswa",
+  };
+
+  redirect(routes[result.profile.role]);
+
+  return null;
 }
 
-export default Page;
+export default function HomePage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center">
+          Memuat dashboard...
+        </main>
+      }
+    >
+      <HomeRedirect />
+    </Suspense>
+  );
+}
