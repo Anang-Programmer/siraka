@@ -1,18 +1,20 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { getErrorMessage } from "@/lib/errors";
 
-type MahasiswaShellProps = {
-  children: ReactNode;
-  fullName: string;
-};
-
 type IconName =
+  | "menu"
+  | "close"
   | "home"
   | "rooms"
   | "calendar"
@@ -64,6 +66,8 @@ function Icon({
   className?: string;
 }) {
   const paths: Record<IconName, ReactNode> = {
+    menu: <path d="M5 6h14M5 12h14M5 18h14" />,
+    close: <path d="m6 6 12 12M18 6 6 18" />,
     home: (
       <>
         <path d="m3 10 9-7 9 7" />
@@ -124,16 +128,19 @@ function isActive(pathname: string, item: NavItem) {
 export default function MahasiswaShell({
   children,
   fullName,
-}: MahasiswaShellProps) {
+}: {
+  children: ReactNode;
+  fullName: string;
+}) {
   const pathname = usePathname();
   const router = useRouter();
 
-  const [logoutError, setLogoutError] = useState("");
-  const [loggingOut, setLoggingOut] = useState(false);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  const activeItem = navigation.find((item) =>
-    isActive(pathname, item),
-  );
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
 
   const displayName = fullName.trim() || "Mahasiswa";
 
@@ -143,6 +150,63 @@ export default function MahasiswaShell({
     .map((word) => word.charAt(0))
     .join("")
     .toUpperCase();
+
+  const activeItem = navigation.find((item) =>
+    isActive(pathname, item),
+  );
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+
+    if (!dialog) return;
+
+    if (mobileOpen && !dialog.open) {
+      dialog.showModal();
+    }
+
+    if (!mobileOpen && dialog.open) {
+      dialog.close();
+    }
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 1024px)");
+
+    function handleResize() {
+      if (query.matches) {
+        dialogRef.current?.close();
+        setMobileOpen(false);
+      }
+    }
+
+    handleResize();
+    query.addEventListener("change", handleResize);
+
+    return () => {
+      query.removeEventListener("change", handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    // State mobileOpen diperbarui melalui event onClose dialog.
+    dialogRef.current?.close();
+  }, [pathname]);
+
+  function closeMobile() {
+    dialogRef.current?.close();
+    setMobileOpen(false);
+  }
 
   async function handleLogout() {
     if (loggingOut) return;
@@ -156,71 +220,78 @@ export default function MahasiswaShell({
 
       if (error) throw error;
 
+      closeMobile();
       router.replace("/login");
       router.refresh();
-    } catch (error) {
-      console.error("Logout:", error);
+    } catch (err) {
+      console.error("Mahasiswa logout:", err);
 
       setLogoutError(
-        getErrorMessage(error, "Gagal keluar. Silakan coba lagi."),
+        getErrorMessage(err, "Gagal keluar. Silakan coba lagi."),
       );
 
       setLoggingOut(false);
     }
   }
 
-  return (
-    <div className="min-h-screen bg-[#F3F6FA] text-ink">
-      <a
-        href="#main-content"
-        className="sr-only fixed left-4 top-4 z-50 rounded-xl bg-white px-4 py-3 text-sm font-bold text-primary shadow-lg focus:not-sr-only"
-      >
-        Lewati navigasi
-      </a>
+  function fullSidebar(mobile: boolean) {
+    return (
+      <div className="flex min-h-full flex-col bg-[#122D46] text-white">
+        <div className="flex shrink-0 items-center justify-between gap-3 px-5 py-7">
+          <Link
+            href="/dashboard/mahasiswa"
+            onClick={() => {
+              if (mobile) closeMobile();
+            }}
+            className="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white p-2">
+              <Image
+                src="/images/logo/logo.png"
+                alt=""
+                width={36}
+                height={36}
+                className="h-9 w-9 object-contain"
+                priority
+              />
+            </span>
 
-      <aside className="relative flex w-full flex-col bg-[#122D46] text-white lg:fixed lg:inset-y-0 lg:left-0 lg:z-30 lg:w-72 lg:overflow-y-auto">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 top-0 h-72 bg-[radial-gradient(ellipse_at_top_left,rgba(41,169,184,0.18),transparent_70%)]"
-        />
+            <span>
+              <span className="block font-heading text-xl font-extrabold tracking-wider">
+                SIRAKA
+              </span>
 
-        <Link
-          href="/dashboard/mahasiswa"
-          className="relative flex shrink-0 items-center gap-3 px-6 py-6 focus-visible:outline-2 focus-visible:outline-inset focus-visible:outline-white lg:px-7 lg:py-8"
-        >
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white p-2 shadow-lg shadow-black/10">
-            <Image
-              src="/images/logo/logo.png"
-              alt=""
-              width={36}
-              height={36}
-              className="h-9 w-9 object-contain"
-              priority
-            />
-          </div>
+              <span className="mt-1 block text-[10px] text-slate-300">
+                Panel Mahasiswa
+              </span>
+            </span>
+          </Link>
 
-          <div>
-            <p className="font-heading text-xl font-extrabold tracking-[0.08em]">
-              SIRAKA
-            </p>
-
-            <p className="mt-0.5 text-[10px] font-medium tracking-wide text-slate-300">
-              Portal Mahasiswa
-            </p>
-          </div>
-        </Link>
-
-        <div className="relative mx-6 hidden shrink-0 border-t border-white/10 lg:block" />
-
-        <div className="relative hidden shrink-0 px-7 pb-4 pt-7 lg:block">
-          <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-400">
-            Workspace Mahasiswa
-          </p>
+          {mobile && (
+            <button
+              type="button"
+              onClick={closeMobile}
+              aria-label="Tutup menu"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-300 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-white"
+            >
+              <Icon name="close" />
+            </button>
+          )}
         </div>
 
+        <div className="mx-5 shrink-0 border-t border-white/10" />
+
+        <p className="shrink-0 px-6 pb-4 pt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+          Workspace Mahasiswa
+        </p>
+
         <nav
-          aria-label="Navigasi Mahasiswa"
-          className="relative flex shrink-0 gap-2 overflow-x-auto px-4 pb-4 lg:flex-col lg:overflow-visible lg:px-4 lg:pb-6"
+          aria-label={
+            mobile
+              ? "Navigasi Mahasiswa seluler lengkap"
+              : "Navigasi Mahasiswa"
+          }
+          className="flex shrink-0 flex-col gap-2 px-3 pb-6"
         >
           {navigation.map((item) => {
             const active = isActive(pathname, item);
@@ -229,15 +300,18 @@ export default function MahasiswaShell({
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => {
+                  if (mobile) closeMobile();
+                }}
                 aria-current={active ? "page" : undefined}
-                className={`group flex shrink-0 items-center gap-3 rounded-2xl px-3 py-3 transition-colors duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white lg:w-full lg:px-4 lg:py-3.5 ${
+                className={`group flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
                   active
-                    ? "bg-white text-[#122D46] shadow-lg shadow-black/10"
+                    ? "bg-white text-[#122D46] shadow-sm"
                     : "text-slate-300 hover:bg-white hover:text-[#122D46]"
                 }`}
               >
                 <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors duration-200 ${
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
                     active
                       ? "bg-slate-100"
                       : "bg-white/5 group-hover:bg-slate-100"
@@ -252,7 +326,7 @@ export default function MahasiswaShell({
                   </span>
 
                   <span
-                    className={`mt-1 hidden text-[10px] transition-colors duration-200 lg:block ${
+                    className={`mt-1 block text-[10px] leading-5 ${
                       active
                         ? "text-slate-500"
                         : "text-slate-400 group-hover:text-slate-500"
@@ -266,113 +340,213 @@ export default function MahasiswaShell({
           })}
         </nav>
 
-        <div
-          aria-hidden="true"
-          className="hidden lg:block lg:min-h-6 lg:flex-1"
-        />
+        <div aria-hidden="true" className="min-h-5 flex-1" />
 
-        <div className="relative mx-5 mb-5 hidden shrink-0 rounded-2xl border border-white/10 bg-white/[0.04] p-5 lg:block">
+        <div className="mx-4 mb-5 shrink-0 rounded-2xl border border-white/10 bg-white/[0.04] p-5">
           <span className="inline-flex rounded-lg bg-cyan-300/10 p-2 text-cyan-200">
-            <Icon name="inbox" className="h-4 w-4" />
+            <Icon name="inbox" />
           </span>
 
-          <p className="mt-3 font-heading text-sm font-bold">
-            Ada rencana kegiatan?
+          <p className="mt-3 text-sm font-bold">
+            Ada rencana kegiatan.
           </p>
 
-          <p className="mt-2 text-[11px] leading-5 text-slate-300">
-            Sampaikan kebutuhan ruanganmu dan koordinasikan bersama
-            Komting.
+          <p className="mt-2 text-[11px] leading-6 text-slate-300">
+            Sampaikan kebutuhan ruanganmu dan koordinasikan bersama Komting.
           </p>
-
           <Link
             href="/dashboard/mahasiswa/requests"
-            className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-lg text-[11px] font-bold leading-5 text-cyan-200 transition hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+            onClick={() => { if (mobile) closeMobile(); }}
+            className="mt-4 inline-flex min-h-10 items-center rounded-lg text-xs font-bold text-cyan-200 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
           >
-            <span>Ajukan kebutuhan</span>
-
-            <Icon
-              name="arrow"
-              className="h-3.5 w-3.5 shrink-0"
-            />
+            Ajukan kebutuhan
           </Link>
         </div>
 
-        <div className="relative shrink-0 border-t border-white/10 px-5 py-4">
+        <div className="shrink-0 border-t border-white/10 p-4">
           <div className="flex items-center gap-3">
-            <div
+            <span
               aria-hidden="true"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#29A9B8]/15 text-xs font-bold text-cyan-200 ring-1 ring-inset ring-cyan-200/20"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-300/10 text-xs font-bold text-cyan-200"
             >
               {initials}
-            </div>
+            </span>
 
             <div className="min-w-0 flex-1">
               <p
                 title={displayName}
-                className="truncate text-xs font-bold text-white"
+                className="truncate text-xs font-bold"
               >
                 {displayName}
               </p>
 
               <p className="mt-1 text-[10px] text-slate-400">
-                Akun Mahasiswa
+                Mahasiswa
               </p>
             </div>
 
             <button
               type="button"
-              onClick={handleLogout}
+              onClick={() => void handleLogout()}
               disabled={loggingOut}
-              aria-label={
-                loggingOut ? "Sedang keluar" : "Keluar dari akun"
-              }
-              aria-describedby={
-                logoutError ? "logout-error" : undefined
-              }
+              aria-label="Keluar dari akun"
               title="Keluar"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-300 transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-white disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-300 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-white disabled:opacity-50"
             >
               <Icon name="logout" className="h-4 w-4" />
             </button>
           </div>
+        </div>
+      </div>
+    );
+  }
 
-          {loggingOut && (
-            <p
-              role="status"
-              className="mt-3 text-xs text-slate-300"
-            >
-              Keluar dari akun...
-            </p>
-          )}
+  return (
+    <div className="min-h-screen bg-[#F3F6FA] text-ink">
+      <a
+        href="#mahasiswa-main-content"
+        className="sr-only fixed left-20 top-4 z-50 rounded-xl bg-white px-4 py-3 text-sm font-bold text-primary shadow-lg focus:not-sr-only"
+      >
+        Lewati navigasi
+      </a>
 
-          {logoutError && (
-            <p
-              id="logout-error"
-              role="alert"
-              className="mt-3 rounded-lg bg-red-400/10 p-3 text-xs leading-5 text-red-200"
-            >
-              {logoutError}
-            </p>
-          )}
+      <aside
+        aria-label="Sidebar Mahasiswa desktop"
+        className="fixed inset-y-0 left-0 z-30 hidden w-72 overflow-y-auto bg-[#122D46] lg:block"
+      >
+        {fullSidebar(false)}
+      </aside>
+
+      <aside
+        aria-label="Sidebar Mahasiswa seluler"
+        className="fixed inset-y-0 left-0 z-30 flex w-16 flex-col overflow-y-auto bg-[#122D46] text-white lg:hidden"
+      >
+        <div className="flex shrink-0 flex-col items-center gap-3 px-2 py-4">
+          <Link
+            href="/dashboard/mahasiswa"
+            aria-label="Dashboard SIRAKA"
+            title="Dashboard SIRAKA"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-white p-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            <Image
+              src="/images/logo/logo.png"
+              alt=""
+              width={28}
+              height={28}
+              className="h-7 w-7 object-contain"
+            />
+          </Link>
+
+          <button
+            ref={menuButtonRef}
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Buka menu lengkap"
+            aria-expanded={mobileOpen}
+            aria-controls="mahasiswa-mobile-menu"
+            aria-haspopup="dialog"
+            title="Buka menu"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-white transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-white"
+          >
+            <Icon name="menu" className="h-6 w-6" />
+          </button>
+        </div>
+
+        <div className="mx-3 shrink-0 border-t border-white/10" />
+
+        <nav
+          aria-label="Navigasi ikon Mahasiswa"
+          className="flex shrink-0 flex-col items-center gap-2 py-4"
+        >
+          {navigation.map((item) => {
+            const active = isActive(pathname, item);
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-label={item.label}
+                aria-current={active ? "page" : undefined}
+                title={item.label}
+                className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                  active
+                    ? "bg-white text-[#122D46]"
+                    : "text-slate-300 hover:bg-white hover:text-[#122D46]"
+                }`}
+              >
+                <Icon name={item.icon} />
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div aria-hidden="true" className="min-h-4 flex-1" />
+
+        <div className="flex shrink-0 flex-col items-center gap-3 border-t border-white/10 px-2 py-4">
+          <span
+            aria-hidden="true"
+            title={displayName}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-cyan-300/15 text-[10px] font-bold text-cyan-100"
+          >
+            {initials}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => void handleLogout()}
+            disabled={loggingOut}
+            aria-label="Keluar dari akun"
+            title="Keluar"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-300 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-white disabled:opacity-50"
+          >
+            <Icon name="logout" />
+          </button>
         </div>
       </aside>
 
-      <div className="flex min-h-screen min-w-0 flex-col lg:ml-72">
-        <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/90 px-4 backdrop-blur-xl sm:px-6 lg:px-10">
-          <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-4">
+      <dialog
+        ref={dialogRef}
+        id="mahasiswa-mobile-menu"
+        aria-label="Menu lengkap Mahasiswa"
+        onCancel={() => setMobileOpen(false)}
+        onClose={() => {
+          setMobileOpen(false);
+
+          if (!window.matchMedia("(min-width: 1024px)").matches) {
+            menuButtonRef.current?.focus();
+          }
+        }}
+        onClick={(event) => {
+          if (event.target !== event.currentTarget) return;
+
+          const rect = event.currentTarget.getBoundingClientRect();
+
+          if (
+            event.clientX < rect.left ||
+            event.clientX > rect.right ||
+            event.clientY < rect.top ||
+            event.clientY > rect.bottom
+          ) {
+            closeMobile();
+          }
+        }}
+        className="fixed inset-y-0 left-0 right-auto m-0 h-dvh max-h-dvh w-[min(288px,90vw)] max-w-none overflow-y-auto border-0 bg-[#122D46] p-0 text-white shadow-2xl backdrop:bg-slate-950/50 backdrop:backdrop-blur-sm"
+      >
+        {fullSidebar(true)}
+      </dialog>
+
+      <div className="ml-16 flex min-h-screen min-w-0 flex-col lg:ml-72">
+        <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/95 px-4 backdrop-blur-xl sm:px-6 lg:px-10">
+          <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="flex items-center gap-2 text-[10px] font-medium text-slate-400">
                 <span>SIRAKA</span>
                 <span aria-hidden="true">/</span>
-
-                <span className="text-muted">
-                  Portal Mahasiswa
-                </span>
+                <span className="text-muted">Portal Mahasiswa</span>
               </p>
 
-              <p className="mt-1.5 truncate font-heading text-base font-extrabold text-primary">
-                {activeItem?.label ?? "Portal Mahasiswa"}
+              <p className="mt-1.5 truncate font-heading text-sm font-extrabold text-primary sm:text-base">
+                {activeItem?.label ?? "Panel Mahasiswa"}
               </p>
             </div>
 
@@ -381,28 +555,43 @@ export default function MahasiswaShell({
                 Mahasiswa
               </span>
 
-              <div
+              <span
                 aria-hidden="true"
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-xs font-bold text-white ring-4 ring-slate-100"
+                className="hidden h-10 w-10 items-center justify-center rounded-full bg-primary text-xs font-bold text-white ring-4 ring-slate-100 lg:flex"
               >
                 {initials}
-              </div>
+              </span>
             </div>
           </div>
         </header>
 
         <main
-          id="main-content"
+          id="mahasiswa-main-content"
           tabIndex={-1}
-          className="mx-auto w-full max-w-7xl flex-1 scroll-mt-24 px-4 py-6 focus:outline-none sm:px-6 sm:py-8 lg:px-10 lg:py-9"
+          className="mx-auto w-full max-w-7xl flex-1 scroll-mt-24 px-3 py-5 focus:outline-none sm:px-6 sm:py-8 lg:px-10 lg:py-9"
         >
+          {loggingOut && (
+            <p role="status" className="sr-only">
+              Keluar dari akun...
+            </p>
+          )}
+
+          {logoutError && (
+            <p
+              role="alert"
+              className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+            >
+              {logoutError}
+            </p>
+          )}
+
           {children}
         </main>
 
-        <footer className="px-4 pb-6 sm:px-6 lg:px-10">
+        <footer className="px-3 pb-6 sm:px-6 lg:px-10">
           <div className="mx-auto flex max-w-7xl flex-col justify-between gap-2 border-t border-slate-200 pt-5 sm:flex-row sm:items-center">
             <p className="text-[10px] text-muted">
-              © 2026 SIRAKA. Universitas Negeri Medan.
+              Â© 2026 SIRAKA. Universitas Negeri Medan.
             </p>
 
             <p className="text-[10px] text-slate-400">
