@@ -1,128 +1,646 @@
 "use client";
 
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, type ReactNode } from "react";
-import { getErrorMessage } from "@/lib/errors";
 import { createClient } from "@/lib/supabase/client";
+import { getErrorMessage } from "@/lib/errors";
 
-type NavIconName = "home" | "booking" | "clock" | "users" | "user-check" | "inbox" | "settings";
+type IconName =
+  | "menu"
+  | "close"
+  | "home"
+  | "booking"
+  | "clock"
+  | "users"
+  | "approval"
+  | "inbox"
+  | "settings"
+  | "logout"
+  | "arrow";
 
 type NavItem = {
   label: string;
+  description: string;
   href: string;
-  icon: NavIconName;
+  icon: IconName;
   exact?: boolean;
 };
 
-const navItems: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard/komting", icon: "home", exact: true },
-  { label: "Ajukan Booking", href: "/dashboard/komting/bookings/new", icon: "booking", exact: true },
-  { label: "Status Booking", href: "/dashboard/komting/bookings", icon: "clock", exact: true },
-  { label: "Pengajuan Mahasiswa", href: "/dashboard/komting/student-requests", icon: "inbox", exact: true },
-  { label: "Daftar Mahasiswa", href: "/dashboard/komting/students", icon: "users", exact: true },
-  { label: "Persetujuan Mahasiswa", href: "/dashboard/komting/registrations", icon: "user-check" },
-  { label: "Pengaturan", href: "/dashboard/komting/settings", icon: "settings", exact: true },
+const navigation: NavItem[] = [
+  {
+    label: "Dashboard",
+    description: "Ringkasan aktivitas kelas",
+    href: "/dashboard/komting",
+    icon: "home",
+    exact: true,
+  },
+  {
+    label: "Ajukan Booking",
+    description: "Reservasi ruangan untuk kelas",
+    href: "/dashboard/komting/bookings/new",
+    icon: "booking",
+    exact: true,
+  },
+  {
+    label: "Status Booking",
+    description: "Pantau pengajuan reservasi",
+    href: "/dashboard/komting/bookings",
+    icon: "clock",
+    exact: true,
+  },
+  {
+    label: "Pengajuan Mahasiswa",
+    description: "Tinjau kebutuhan anggota kelas",
+    href: "/dashboard/komting/student-requests",
+    icon: "inbox",
+  },
+  {
+    label: "Daftar Mahasiswa",
+    description: "Kelola anggota kelas",
+    href: "/dashboard/komting/students",
+    icon: "users",
+  },
+  {
+    label: "Persetujuan Mahasiswa",
+    description: "Verifikasi pendaftaran anggota",
+    href: "/dashboard/komting/registrations",
+    icon: "approval",
+  },
+  {
+    label: "Pengaturan",
+    description: "Informasi dan preferensi akun",
+    href: "/dashboard/komting/settings",
+    icon: "settings",
+  },
 ];
 
-function NavIcon({ name }: { name: NavIconName }) {
-  const common = {
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.8,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
+function Icon({
+  name,
+  className = "h-5 w-5",
+}: {
+  name: IconName;
+  className?: string;
+}) {
+  const paths: Record<IconName, ReactNode> = {
+    menu: <path d="M5 6h14M5 12h14M5 18h14" />,
+    close: <path d="m6 6 12 12M18 6 6 18" />,
+    home: (
+      <>
+        <path d="m3 10 9-7 9 7" />
+        <path d="M5 9v11h14V9M9 20v-7h6v7" />
+      </>
+    ),
+    booking: (
+      <>
+        <rect x="3" y="5" width="18" height="16" rx="3" />
+        <path d="M7 3v4M17 3v4M3 10h18M12 13v5M9.5 15.5h5" />
+      </>
+    ),
+    clock: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3.5 2" />
+      </>
+    ),
+    users: (
+      <>
+        <circle cx="9" cy="7" r="3" />
+        <path d="M3 21v-2a6 6 0 0 1 12 0v2" />
+        <path d="M16 4a3 3 0 0 1 0 6M21 21v-2a6 6 0 0 0-4-5.7" />
+      </>
+    ),
+    approval: (
+      <>
+        <circle cx="8" cy="7" r="3" />
+        <path d="M2 21v-2a6 6 0 0 1 12 0v2" />
+        <path d="m15 10 2 2 5-5" />
+      </>
+    ),
+    inbox: (
+      <>
+        <path d="M4 4h16l2 11v4H2v-4L4 4Z" />
+        <path d="M2 15h6l2 2h4l2-2h6" />
+      </>
+    ),
+    settings: (
+      <>
+        <path d="M4 6h16M4 12h16M4 18h16" />
+        <circle cx="8" cy="6" r="2" fill="currentColor" stroke="none" />
+        <circle cx="16" cy="12" r="2" fill="currentColor" stroke="none" />
+        <circle cx="10" cy="18" r="2" fill="currentColor" stroke="none" />
+      </>
+    ),
+    logout: (
+      <>
+        <path d="M9 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" />
+        <path d="M9 12h12m-4-4 4 4-4 4" />
+      </>
+    ),
+    arrow: <path d="M5 12h14m-6-6 6 6-6 6" />,
   };
 
-  if (name === "home") {
-    return <svg viewBox="0 0 24 24" aria-hidden="true" {...common}><path d="m3 10 9-7 9 7" /><path d="M5 9v11h14V9M9 20v-7h6v7" /></svg>;
-  }
-  if (name === "booking") {
-    return <svg viewBox="0 0 24 24" aria-hidden="true" {...common}><rect x="3.5" y="5" width="17" height="16" rx="2" /><path d="M8 3v4M16 3v4M3.5 10h17M12 13v5M9.5 15.5h5" /></svg>;
-  }
-  if (name === "clock") {
-    return <svg viewBox="0 0 24 24" aria-hidden="true" {...common}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.5 2" /></svg>;
-  }
-  if (name === "user-check") {
-    return <svg viewBox="0 0 24 24" aria-hidden="true" {...common}><path d="M16 20v-1.5a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20" /><circle cx="9" cy="7" r="4" /><path d="m16 9 2 2 4-4" /></svg>;
-  }
-  if (name === "inbox") {
-    return <svg viewBox="0 0 24 24" aria-hidden="true" {...common}><path d="M4 4h16l2 11v4H2v-4L4 4Z" /><path d="M2 15h6l2 2h4l2-2h6" /></svg>;
-  }
-  if (name === "settings") {
-    return <svg viewBox="0 0 24 24" aria-hidden="true" {...common}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-1.8 3.1-.2-.1a1.7 1.7 0 0 0-1.8.1l-.2.1h-3.6l-.1-.2a1.7 1.7 0 0 0-1.6-1l-.2.1-3.1-1.8.1-.2a1.7 1.7 0 0 0-.1-1.8l-.1-.2v-3.6l.2-.1a1.7 1.7 0 0 0 1-1.6l-.1-.2 1.8-3.1.2.1a1.7 1.7 0 0 0 1.8-.1l.2-.1h3.6l.1.2a1.7 1.7 0 0 0 1.6 1l.2-.1 3.1 1.8-.1.2a1.7 1.7 0 0 0 .1 1.8l.1.2v3.6Z" /></svg>;
-  }
-  return <svg viewBox="0 0 24 24" aria-hidden="true" {...common}><path d="M16 20v-1.5a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20" /><circle cx="9" cy="7" r="4" /><path d="M18 8a4 4 0 0 1 0 7.75M22 20v-1.5a4 4 0 0 0-3-3.87" /></svg>;
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      {paths[name]}
+    </svg>
+  );
 }
 
-function isActivePath(pathname: string, item: NavItem) {
-  if (item.exact) return pathname === item.href;
-  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+function isActive(pathname: string, item: NavItem) {
+  return item.exact
+    ? pathname === item.href
+    : pathname === item.href ||
+        pathname.startsWith(`${item.href}/`);
 }
 
-export default function KomtingShell({ children }: { children: ReactNode }) {
+export default function KomtingShell({
+  children,
+}: {
+  children: ReactNode;
+}) {
   const pathname = usePathname();
   const router = useRouter();
-  const [signingOut, setSigningOut] = useState(false);
-  const [signOutError, setSignOutError] = useState("");
-  const activeItem = navItems.find((item) => isActivePath(pathname, item));
 
-  async function handleSignOut() {
-    if (signingOut) return;
-    setSigningOut(true);
-    setSignOutError("");
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
+
+  const displayName = "Komting";
+
+  const initials = displayName
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word.charAt(0))
+    .join("")
+    .toUpperCase();
+
+  const activeItem = navigation.find((item) =>
+    isActive(pathname, item),
+  );
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+
+    if (!dialog) return;
+
+    if (mobileOpen && !dialog.open) {
+      dialog.showModal();
+    }
+
+    if (!mobileOpen && dialog.open) {
+      dialog.close();
+    }
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [mobileOpen]);
+
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 1024px)");
+
+    function handleResize() {
+      if (query.matches) {
+        dialogRef.current?.close();
+        setMobileOpen(false);
+      }
+    }
+
+    handleResize();
+    query.addEventListener("change", handleResize);
+
+    return () => {
+      query.removeEventListener("change", handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    // State mobileOpen diperbarui melalui event onClose dialog.
+    dialogRef.current?.close();
+  }, [pathname]);
+
+  function closeMobile() {
+    dialogRef.current?.close();
+    setMobileOpen(false);
+  }
+
+  async function handleLogout() {
+    if (loggingOut) return;
+
+    setLoggingOut(true);
+    setLogoutError("");
 
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.signOut();
+
       if (error) throw error;
+
+      closeMobile();
       router.replace("/login");
       router.refresh();
-    } catch (error) {
-      console.error("Komting sign out error:", error);
-      setSignOutError(getErrorMessage(error, "Gagal keluar. Silakan coba lagi."));
-      setSigningOut(false);
+    } catch (err) {
+      console.error("Komting logout:", err);
+
+      setLogoutError(
+        getErrorMessage(err, "Gagal keluar. Silakan coba lagi."),
+      );
+
+      setLoggingOut(false);
     }
   }
 
-  return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 lg:flex">
-      <aside className="z-20 flex w-full flex-col border-b border-slate-200 bg-white lg:fixed lg:inset-y-0 lg:left-0 lg:w-64 lg:border-r lg:border-b-0">
-        <div className="flex items-center gap-3 px-5 py-5 lg:px-6 lg:py-6">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-sm font-bold tracking-wide text-white">S</div>
-          <div className="min-w-0"><p className="text-base font-bold tracking-tight text-slate-900">SIRAKA</p><p className="text-xs text-slate-500">Panel Ketua Tingkat</p></div>
+  function fullSidebar(mobile: boolean) {
+    return (
+      <div className="flex min-h-full flex-col bg-[#122D46] text-white">
+        <div className="flex shrink-0 items-center justify-between gap-3 px-5 py-7">
+          <Link
+            href="/dashboard/komting"
+            onClick={() => {
+              if (mobile) closeMobile();
+            }}
+            className="flex min-w-0 items-center gap-3 rounded-xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white p-2">
+              <Image
+                src="/images/logo/logo.png"
+                alt=""
+                width={36}
+                height={36}
+                className="h-9 w-9 object-contain"
+                priority
+              />
+            </span>
+
+            <span>
+              <span className="block font-heading text-xl font-extrabold tracking-wider">
+                SIRAKA
+              </span>
+
+              <span className="mt-1 block text-[10px] text-slate-300">
+                Panel Komisaris Tingkat
+              </span>
+            </span>
+          </Link>
+
+          {mobile && (
+            <button
+              type="button"
+              onClick={closeMobile}
+              aria-label="Tutup menu"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-300 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-white"
+            >
+              <Icon name="close" />
+            </button>
+          )}
         </div>
-        <div className="hidden px-6 pb-3 lg:block"><p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Menu Utama</p></div>
-        <nav aria-label="Navigasi Komting" className="flex gap-1 overflow-x-auto px-3 pb-3 lg:flex-1 lg:flex-col lg:overflow-visible lg:px-3 lg:pb-4">
-          {navItems.map((item) => {
-            const active = isActivePath(pathname, item);
+
+        <div className="mx-5 shrink-0 border-t border-white/10" />
+
+        <p className="shrink-0 px-6 pb-4 pt-6 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400">
+          Workspace Komting
+        </p>
+
+        <nav
+          aria-label={
+            mobile
+              ? "Navigasi Komting seluler lengkap"
+              : "Navigasi Komisaris Tingkat"
+          }
+          className="flex shrink-0 flex-col gap-2 px-3 pb-6"
+        >
+          {navigation.map((item) => {
+            const active = isActive(pathname, item);
+
             return (
-              <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined}
-                className={`flex shrink-0 items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors lg:w-full ${active ? "bg-slate-900 text-white shadow-sm" : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"}`}>
-                <span className="h-5 w-5 shrink-0"><NavIcon name={item.icon} /></span><span>{item.label}</span>
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => {
+                  if (mobile) closeMobile();
+                }}
+                aria-current={active ? "page" : undefined}
+                className={`group flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                  active
+                    ? "bg-white text-[#122D46] shadow-sm"
+                    : "text-slate-300 hover:bg-white hover:text-[#122D46]"
+                }`}
+              >
+                <span
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${
+                    active
+                      ? "bg-slate-100"
+                      : "bg-white/5 group-hover:bg-slate-100"
+                  }`}
+                >
+                  <Icon name={item.icon} />
+                </span>
+
+                <span className="min-w-0">
+                  <span className="block text-xs font-bold">
+                    {item.label}
+                  </span>
+
+                  <span
+                    className={`mt-1 block text-[10px] leading-5 ${
+                      active
+                        ? "text-slate-500"
+                        : "text-slate-400 group-hover:text-slate-500"
+                    }`}
+                  >
+                    {item.description}
+                  </span>
+                </span>
               </Link>
             );
           })}
         </nav>
-        <div className="hidden border-t border-slate-100 p-4 lg:block">
-          <div className="mb-3 rounded-xl bg-slate-50 px-3 py-3"><p className="text-sm font-semibold text-slate-800">Akun Komting</p><p className="mt-0.5 text-xs text-slate-500">Kelola booking dan data kelas</p></div>
-          {signOutError && <p role="alert" className="mb-2 text-xs text-red-600">{signOutError}</p>}
-          <button type="button" onClick={handleSignOut} disabled={signingOut} className="flex w-full items-center justify-center rounded-lg border border-slate-200 px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-60">{signingOut ? "Keluar..." : "Keluar"}</button>
+
+        <div aria-hidden="true" className="min-h-5 flex-1" />
+
+        <div className="mx-4 mb-5 shrink-0 rounded-2xl border border-white/10 bg-white/[0.04] p-5">
+          <span className="inline-flex rounded-lg bg-cyan-300/10 p-2 text-cyan-200">
+            <Icon name="booking" />
+          </span>
+
+          <p className="mt-3 text-sm font-bold">
+            Siapkan kegiatan kelas.
+          </p>
+
+          <p className="mt-2 text-[11px] leading-6 text-slate-300">
+            Ajukan kebutuhan ruangan dan pantau status reservasi kelasmu.
+          </p>
+          <Link
+            href="/dashboard/komting/bookings/new"
+            onClick={() => { if (mobile) closeMobile(); }}
+            className="mt-4 inline-flex min-h-10 items-center rounded-lg text-xs font-bold text-cyan-200 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          >
+            Ajukan booking
+          </Link>
         </div>
-        <div className="flex items-center justify-between gap-3 px-4 pb-3 lg:hidden">
-          {signOutError ? <p role="alert" className="text-xs text-red-600">{signOutError}</p> : <span className="text-xs text-slate-400">Masuk sebagai Komting</span>}
-          <button type="button" onClick={handleSignOut} disabled={signingOut} className="shrink-0 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-60">{signingOut ? "Keluar..." : "Keluar"}</button>
+
+        <div className="shrink-0 border-t border-white/10 p-4">
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-cyan-300/10 text-xs font-bold text-cyan-200"
+            >
+              {initials}
+            </span>
+
+            <div className="min-w-0 flex-1">
+              <p
+                title={displayName}
+                className="truncate text-xs font-bold"
+              >
+                {displayName}
+              </p>
+
+              <p className="mt-1 text-[10px] text-slate-400">
+                Komisaris Tingkat
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => void handleLogout()}
+              disabled={loggingOut}
+              aria-label="Keluar dari akun"
+              title="Keluar"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-slate-300 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-white disabled:opacity-50"
+            >
+              <Icon name="logout" className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#F3F6FA] text-ink">
+      <a
+        href="#komting-main-content"
+        className="sr-only fixed left-20 top-4 z-50 rounded-xl bg-white px-4 py-3 text-sm font-bold text-primary shadow-lg focus:not-sr-only"
+      >
+        Lewati navigasi
+      </a>
+
+      <aside
+        aria-label="Sidebar Komting desktop"
+        className="fixed inset-y-0 left-0 z-30 hidden w-72 overflow-y-auto bg-[#122D46] lg:block"
+      >
+        {fullSidebar(false)}
+      </aside>
+
+      <aside
+        aria-label="Sidebar Komting seluler"
+        className="fixed inset-y-0 left-0 z-30 flex w-16 flex-col overflow-y-auto bg-[#122D46] text-white lg:hidden"
+      >
+        <div className="flex shrink-0 flex-col items-center gap-3 px-2 py-4">
+          <Link
+            href="/dashboard/komting"
+            aria-label="Dashboard SIRAKA"
+            title="Dashboard SIRAKA"
+            className="flex h-10 w-10 items-center justify-center rounded-xl bg-white p-1.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            <Image
+              src="/images/logo/logo.png"
+              alt=""
+              width={28}
+              height={28}
+              className="h-7 w-7 object-contain"
+            />
+          </Link>
+
+          <button
+            ref={menuButtonRef}
+            type="button"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Buka menu lengkap"
+            aria-expanded={mobileOpen}
+            aria-controls="komting-mobile-menu"
+            aria-haspopup="dialog"
+            title="Buka menu"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-white transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-white"
+          >
+            <Icon name="menu" className="h-6 w-6" />
+          </button>
+        </div>
+
+        <div className="mx-3 shrink-0 border-t border-white/10" />
+
+        <nav
+          aria-label="Navigasi ikon Komting"
+          className="flex shrink-0 flex-col items-center gap-2 py-4"
+        >
+          {navigation.map((item) => {
+            const active = isActive(pathname, item);
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-label={item.label}
+                aria-current={active ? "page" : undefined}
+                title={item.label}
+                className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
+                  active
+                    ? "bg-white text-[#122D46]"
+                    : "text-slate-300 hover:bg-white hover:text-[#122D46]"
+                }`}
+              >
+                <Icon name={item.icon} />
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div aria-hidden="true" className="min-h-4 flex-1" />
+
+        <div className="flex shrink-0 flex-col items-center gap-3 border-t border-white/10 px-2 py-4">
+          <span
+            aria-hidden="true"
+            title={displayName}
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-cyan-300/15 text-[10px] font-bold text-cyan-100"
+          >
+            {initials}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => void handleLogout()}
+            disabled={loggingOut}
+            aria-label="Keluar dari akun"
+            title="Keluar"
+            className="flex h-11 w-11 items-center justify-center rounded-xl text-slate-300 hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-white disabled:opacity-50"
+          >
+            <Icon name="logout" />
+          </button>
         </div>
       </aside>
 
-      <div className="min-w-0 flex-1 lg:ml-64">
-        <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
-          <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-            <div><p className="text-xs font-medium text-slate-400">SIRAKA / Komting</p><h1 className="mt-0.5 text-base font-semibold text-slate-900">{activeItem?.label ?? "Panel Komting"}</h1></div>
-            <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-600">Ketua Tingkat</span>
+      <dialog
+        ref={dialogRef}
+        id="komting-mobile-menu"
+        aria-label="Menu lengkap Komting"
+        onCancel={() => setMobileOpen(false)}
+        onClose={() => {
+          setMobileOpen(false);
+
+          if (!window.matchMedia("(min-width: 1024px)").matches) {
+            menuButtonRef.current?.focus();
+          }
+        }}
+        onClick={(event) => {
+          if (event.target !== event.currentTarget) return;
+
+          const rect = event.currentTarget.getBoundingClientRect();
+
+          if (
+            event.clientX < rect.left ||
+            event.clientX > rect.right ||
+            event.clientY < rect.top ||
+            event.clientY > rect.bottom
+          ) {
+            closeMobile();
+          }
+        }}
+        className="fixed inset-y-0 left-0 right-auto m-0 h-dvh max-h-dvh w-[min(288px,90vw)] max-w-none overflow-y-auto border-0 bg-[#122D46] p-0 text-white shadow-2xl backdrop:bg-slate-950/50 backdrop:backdrop-blur-sm"
+      >
+        {fullSidebar(true)}
+      </dialog>
+
+      <div className="ml-16 flex min-h-screen min-w-0 flex-col lg:ml-72">
+        <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/95 px-4 backdrop-blur-xl sm:px-6 lg:px-10">
+          <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="flex items-center gap-2 text-[10px] font-medium text-slate-400">
+                <span>SIRAKA</span>
+                <span aria-hidden="true">/</span>
+                <span className="text-muted">Panel Komting</span>
+              </p>
+
+              <p className="mt-1.5 truncate font-heading text-sm font-extrabold text-primary sm:text-base">
+                {activeItem?.label ?? "Panel Komisaris Tingkat"}
+              </p>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-4">
+              <span className="hidden rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[10px] font-semibold text-primary sm:inline-flex">
+                Komisaris Tingkat
+              </span>
+
+              <span
+                aria-hidden="true"
+                className="hidden h-10 w-10 items-center justify-center rounded-full bg-primary text-xs font-bold text-white ring-4 ring-slate-100 lg:flex"
+              >
+                {initials}
+              </span>
+            </div>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-7xl p-4 sm:p-6 lg:p-8">{children}</main>
+
+        <main
+          id="komting-main-content"
+          tabIndex={-1}
+          className="mx-auto w-full max-w-7xl flex-1 scroll-mt-24 px-3 py-5 focus:outline-none sm:px-6 sm:py-8 lg:px-10 lg:py-9"
+        >
+          {loggingOut && (
+            <p role="status" className="sr-only">
+              Keluar dari akun...
+            </p>
+          )}
+
+          {logoutError && (
+            <p
+              role="alert"
+              className="mb-5 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+            >
+              {logoutError}
+            </p>
+          )}
+
+          {children}
+        </main>
+
+        <footer className="px-3 pb-6 sm:px-6 lg:px-10">
+          <div className="mx-auto flex max-w-7xl flex-col justify-between gap-2 border-t border-slate-200 pt-5 sm:flex-row sm:items-center">
+            <p className="text-[10px] text-muted">
+              Â© 2026 SIRAKA. Universitas Negeri Medan.
+            </p>
+
+            <p className="text-[10px] text-slate-400">
+              Sistem Penjadwalan &amp; Peminjaman Ruangan
+            </p>
+          </div>
+        </footer>
       </div>
     </div>
   );
