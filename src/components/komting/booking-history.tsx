@@ -203,7 +203,7 @@ export default function BookingHistory() {
   const [statusFilter, setStatusFilter] =
     useState<StatusFilter>("semua");
 
-  const loadBookings = useCallback(async () => {
+    const loadBookings = useCallback(() => {
     controllerRef.current?.abort();
 
     const controller = new AbortController();
@@ -211,10 +211,7 @@ export default function BookingHistory() {
 
     const { signal } = controller;
 
-    setLoading(true);
-    setLoadError("");
-
-    try {
+    const fetchBookings = async () => {
       const supabase = createClient();
 
       const {
@@ -254,9 +251,7 @@ export default function BookingHistory() {
         const { data: roomData, error: roomError } =
           await supabase
             .from("rooms")
-            .select(
-              "id, room_code, room_name, building, floor",
-            )
+            .select("id, room_code, room_name, building, floor")
             .in("id", roomIds);
 
         if (signal.aborted) return;
@@ -269,26 +264,43 @@ export default function BookingHistory() {
 
       if (signal.aborted) return;
 
-      setBookings(
-        rows.map((booking) => ({
-          ...booking,
-          room: roomMap.get(booking.room_id) ?? null,
-        })),
-      );
-    } catch (err) {
-      if (signal.aborted) return;
+      return rows.map((booking) => ({
+        ...booking,
+        room: roomMap.get(booking.room_id) ?? null,
+      }));
+    };
 
-      console.error("Load bookings:", err);
+    return fetchBookings()
+      .then((result) => {
+        if (signal.aborted || !result) return;
 
-      setLoadError(
-        bookingError(
-          getErrorMessage(err, "Gagal memuat data booking."),
-        ),
-      );
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
+        setBookings(result);
+        setLoadError("");
+      })
+      .catch((err: unknown) => {
+        if (signal.aborted) return;
+
+        console.error("Load bookings:", err);
+
+        setLoadError(
+          bookingError(
+            getErrorMessage(err, "Gagal memuat data booking."),
+          ),
+        );
+      })
+      .finally(() => {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
+      });
   }, []);
+
+  function refreshBookings() {
+    setLoading(true);
+    setLoadError("");
+
+    return loadBookings();
+  }
 
   useEffect(() => {
     void loadBookings();
@@ -393,7 +405,7 @@ export default function BookingHistory() {
         "Booking berhasil dibatalkan. Reservasi ruangan sudah dilepas.",
       );
 
-      await loadBookings();
+      await refreshBookings();
     } catch (err) {
       console.error("Cancel booking:", err);
 
@@ -482,7 +494,7 @@ export default function BookingHistory() {
         <div className="flex shrink-0 flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => void loadBookings()}
+            onClick={() => void refreshBookings()}
             disabled={loading || busyId !== null}
             className="btn-outline rounded-xl text-xs shadow-sm"
           >

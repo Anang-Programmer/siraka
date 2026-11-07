@@ -315,20 +315,14 @@ export default function MahasiswaDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadDashboard = useCallback(async () => {
+  const loadDashboard = useCallback(() => {
     if (!today) return;
-
     loadController.current?.abort();
-
     const controller = new AbortController();
     loadController.current = controller;
-
     const { signal } = controller;
 
-    setLoading(true);
-    setError("");
-
-    try {
+    const fetchDashboard = async () => {
       const supabase = createClient();
 
       const {
@@ -432,20 +426,41 @@ export default function MahasiswaDashboardPage() {
 
       if (signal.aborted) return;
 
-      setProfile(profileData as Profile);
-      setStudentClass(nextClass);
-      setTodayBookings(nextToday);
-      setUpcomingBookings(nextUpcoming);
-      setRooms(nextRooms);
-    } catch (err) {
-      if (signal.aborted) return;
+      return {
+        profile: profileData as Profile,
+        studentClass: nextClass,
+        todayBookings: nextToday,
+        upcomingBookings: nextUpcoming,
+        rooms: nextRooms,
+      };
+    };
 
-      console.error("Load dashboard:", err);
-      setError(getErrorMessage(err, "Gagal memuat dashboard."));
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
+    return fetchDashboard()
+      .then((result) => {
+        if (signal.aborted || !result) return;
+        setProfile(result.profile);
+        setStudentClass(result.studentClass);
+        setTodayBookings(result.todayBookings);
+        setUpcomingBookings(result.upcomingBookings);
+        setRooms(result.rooms);
+        setError("");
+      })
+      .catch((err: unknown) => {
+        if (signal.aborted) return;
+        console.error("Load dashboard:", err);
+        setError(getErrorMessage(err, "Gagal memuat dashboard."));
+      })
+      .finally(() => {
+        if (!signal.aborted) setLoading(false);
+      });
   }, [router, today]);
+
+  function refreshDashboard() {
+    if (!today) return;
+    setLoading(true);
+    setError("");
+    return loadDashboard();
+  }
 
   useEffect(() => {
     if (!today) return;
@@ -522,7 +537,7 @@ export default function MahasiswaDashboardPage() {
 
         <button
           type="button"
-          onClick={() => void loadDashboard()}
+          onClick={() => void refreshDashboard()}
           disabled={loading || !today}
           className="inline-flex min-h-11 w-fit items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-primary shadow-sm transition hover:border-primary/30 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
         >

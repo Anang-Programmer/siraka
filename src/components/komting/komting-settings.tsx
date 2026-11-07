@@ -153,7 +153,7 @@ export default function KomtingSettings() {
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
 
-  const loadProfile = useCallback(async () => {
+    const loadProfile = useCallback(() => {
     controllerRef.current?.abort();
 
     const controller = new AbortController();
@@ -161,10 +161,7 @@ export default function KomtingSettings() {
 
     const { signal } = controller;
 
-    setLoading(true);
-    setLoadError("");
-
-    try {
+    const fetchProfile = async () => {
       const supabase = createClient();
 
       const {
@@ -210,21 +207,44 @@ export default function KomtingSettings() {
 
       if (signal.aborted) return;
 
-      setAuthEmail(user.email ?? "");
-      setProfile(data as ProfileInfo);
-      setClassInfo(nextClass);
-    } catch (err) {
-      if (signal.aborted) return;
+      return {
+        authEmail: user.email ?? "",
+        profile: data as ProfileInfo,
+        classInfo: nextClass,
+      };
+    };
 
-      console.error("Load Komting profile:", err);
+    return fetchProfile()
+      .then((result) => {
+        if (signal.aborted || !result) return;
 
-      setLoadError(
-        getErrorMessage(err, "Gagal memuat profil."),
-      );
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
+        setAuthEmail(result.authEmail);
+        setProfile(result.profile);
+        setClassInfo(result.classInfo);
+        setLoadError("");
+      })
+      .catch((err: unknown) => {
+        if (signal.aborted) return;
+
+        console.error("Load Komting profile:", err);
+
+        setLoadError(
+          getErrorMessage(err, "Gagal memuat profil."),
+        );
+      })
+      .finally(() => {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
+      });
   }, []);
+
+  function refreshProfile() {
+    setLoading(true);
+    setLoadError("");
+
+    return loadProfile();
+  }
 
   useEffect(() => {
     void loadProfile();
@@ -375,7 +395,7 @@ export default function KomtingSettings() {
 
         <button
           type="button"
-          onClick={() => void loadProfile()}
+          onClick={() => void refreshProfile()}
           disabled={loading || savingPassword}
           className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
         >

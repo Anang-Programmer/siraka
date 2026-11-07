@@ -157,7 +157,7 @@ export default function RoomManagement() {
   const busy = saving || busyId !== null;
   const ready = !loading && !loadError;
 
-  const loadRooms = useCallback(async () => {
+    const loadRooms = useCallback(() => {
     controllerRef.current?.abort();
 
     const controller = new AbortController();
@@ -165,10 +165,7 @@ export default function RoomManagement() {
 
     const { signal } = controller;
 
-    setLoading(true);
-    setLoadError("");
-
-    try {
+    const fetchRooms = async () => {
       const supabase = createClient();
 
       const { data, error } = await supabase
@@ -181,26 +178,43 @@ export default function RoomManagement() {
       if (signal.aborted) return;
       if (error) throw error;
 
-      setRooms(
-        ((data ?? []) as Room[]).map((room) => ({
-          ...room,
-          facilities: Array.isArray(room.facilities)
-            ? room.facilities
-            : [],
-        })),
-      );
-    } catch (err) {
-      if (signal.aborted) return;
+      return ((data ?? []) as Room[]).map((room) => ({
+        ...room,
+        facilities: Array.isArray(room.facilities)
+          ? room.facilities
+          : [],
+      }));
+    };
 
-      console.error("Load Admin rooms:", err);
+    return fetchRooms()
+      .then((result) => {
+        if (signal.aborted || !result) return;
 
-      setLoadError(
-        getErrorMessage(err, "Gagal mengambil data ruangan."),
-      );
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
+        setRooms(result);
+        setLoadError("");
+      })
+      .catch((err: unknown) => {
+        if (signal.aborted) return;
+
+        console.error("Load Admin rooms:", err);
+
+        setLoadError(
+          getErrorMessage(err, "Gagal mengambil data ruangan."),
+        );
+      })
+      .finally(() => {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
+      });
   }, []);
+
+  function refreshRooms() {
+    setLoading(true);
+    setLoadError("");
+
+    return loadRooms();
+  }
 
   useEffect(() => {
     void loadRooms();
@@ -347,7 +361,7 @@ export default function RoomManagement() {
       setEditingId(null);
       setForm({ ...initialForm });
 
-      await loadRooms();
+      await refreshRooms();
     } catch (err) {
       console.error("Save room:", err);
 
@@ -545,7 +559,7 @@ export default function RoomManagement() {
         <div className="flex shrink-0 flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => void loadRooms()}
+            onClick={() => void refreshRooms()}
             disabled={loading || busy}
             className="btn-outline rounded-xl text-xs"
           >

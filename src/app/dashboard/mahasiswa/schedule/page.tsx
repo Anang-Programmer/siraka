@@ -227,27 +227,15 @@ export default function MahasiswaSchedulePage() {
   const date = selectedDate ?? today;
   const validDate = dayBounds(date) !== null;
 
-  const loadSchedule = useCallback(async () => {
+  const loadSchedule = useCallback(() => {
     controllerRef.current?.abort();
-
     const controller = new AbortController();
     controllerRef.current = controller;
-
     const { signal } = controller;
 
-    setError("");
-    setWarning("");
-
-    const bounds = dayBounds(date);
-
-    if (!bounds) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-
-    try {
+    const fetchSchedule = async () => {
+      const bounds = dayBounds(date);
+      if (!bounds) return;
       const supabase = createClient();
 
       const [roomResult, occupancyResult] = await Promise.all([
@@ -327,36 +315,45 @@ export default function MahasiswaSchedulePage() {
 
       if (signal.aborted) return;
 
-      setRooms(
-        ((roomResult.data ?? []) as Room[]).map((room) => ({
+      return {
+        rooms: ((roomResult.data ?? []) as Room[]).map((room) => ({
           ...room,
-          facilities: Array.isArray(room.facilities)
-            ? room.facilities
-            : [],
+          facilities: Array.isArray(room.facilities) ? room.facilities : [],
         })),
-      );
+        occupancies: (occupancyResult.data ?? []) as Occupancy[],
+        bookings: nextBookings,
+        warning: nextWarning,
+      };
+    };
 
-      setOccupancies(
-        (occupancyResult.data ?? []) as Occupancy[],
-      );
-      setClassBookings(nextBookings);
-      setWarning(nextWarning);
-      setLoadedDate(date);
-    } catch (err) {
-      if (signal.aborted) return;
-
-      console.error("Load schedule:", err);
-
-      setError(
-        getErrorMessage(
-          err,
-          "Gagal memuat jadwal dan ketersediaan ruangan.",
-        ),
-      );
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
+    return fetchSchedule()
+      .then((result) => {
+        if (signal.aborted) return;
+        setError("");
+        setWarning(result?.warning ?? "");
+        if (!result) return;
+        setRooms(result.rooms);
+        setOccupancies(result.occupancies);
+        setClassBookings(result.bookings);
+        setLoadedDate(date);
+      })
+      .catch((err: unknown) => {
+        if (signal.aborted) return;
+        console.error("Load schedule:", err);
+        setWarning("");
+        setError(getErrorMessage(err, "Gagal memuat jadwal dan ketersediaan ruangan."));
+      })
+      .finally(() => {
+        if (!signal.aborted) setLoading(false);
+      });
   }, [date]);
+
+  function refreshSchedule() {
+    setLoading(true);
+    setError("");
+    setWarning("");
+    return loadSchedule();
+  }
 
   useEffect(() => {
     void loadSchedule();
@@ -493,7 +490,7 @@ export default function MahasiswaSchedulePage() {
 
         <button
           type="button"
-          onClick={() => void loadSchedule()}
+          onClick={() => void refreshSchedule()}
           disabled={loading || !validDate}
           className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
         >

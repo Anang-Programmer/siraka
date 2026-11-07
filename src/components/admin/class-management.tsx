@@ -136,7 +136,7 @@ export default function ClassManagement() {
   const [formError, setFormError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const loadClasses = useCallback(async () => {
+    const loadClasses = useCallback(() => {
     controllerRef.current?.abort();
 
     const controller = new AbortController();
@@ -144,10 +144,7 @@ export default function ClassManagement() {
 
     const { signal } = controller;
 
-    setLoading(true);
-    setLoadError("");
-
-    try {
+    const fetchClasses = async () => {
       const supabase = createClient();
 
       const { data, error: classError } = await supabase
@@ -189,27 +186,44 @@ export default function ClassManagement() {
 
       if (signal.aborted) return;
 
-      setClasses(
-        rows.map((item) => ({
-          ...item,
-          komting: komtingMap.get(item.id) ?? null,
-        })),
-      );
-    } catch (err) {
-      if (signal.aborted) return;
+      return rows.map((item) => ({
+        ...item,
+        komting: komtingMap.get(item.id) ?? null,
+      }));
+    };
 
-      console.error("Load classes:", err);
+    return fetchClasses()
+      .then((result) => {
+        if (signal.aborted || !result) return;
 
-      setLoadError(
-        getErrorMessage(
-          err,
-          "Gagal mengambil data kelas dan Komting.",
-        ),
-      );
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
+        setClasses(result);
+        setLoadError("");
+      })
+      .catch((err: unknown) => {
+        if (signal.aborted) return;
+
+        console.error("Load classes:", err);
+
+        setLoadError(
+          getErrorMessage(
+            err,
+            "Gagal mengambil data kelas dan Komting.",
+          ),
+        );
+      })
+      .finally(() => {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
+      });
   }, []);
+
+  function refreshClasses() {
+    setLoading(true);
+    setLoadError("");
+
+    return loadClasses();
+  }
 
   useEffect(() => {
     void loadClasses();
@@ -351,7 +365,7 @@ export default function ClassManagement() {
       setForm({ ...initialForm });
       setShowForm(false);
 
-      await loadClasses();
+      await refreshClasses();
     } catch (err) {
       console.error("Create class:", err);
 
@@ -420,7 +434,7 @@ export default function ClassManagement() {
         <div className="flex shrink-0 flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => void loadClasses()}
+            onClick={() => void refreshClasses()}
             disabled={loading || saving}
             className="btn-outline rounded-xl text-xs"
           >
