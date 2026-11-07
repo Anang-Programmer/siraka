@@ -251,7 +251,7 @@ export default function MahasiswaRoomsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadRooms = useCallback(async () => {
+    const loadRooms = useCallback(() => {
     loadController.current?.abort();
 
     const controller = new AbortController();
@@ -259,10 +259,7 @@ export default function MahasiswaRoomsPage() {
 
     const { signal } = controller;
 
-    setLoading(true);
-    setError("");
-
-    try {
+    const fetchRooms = async () => {
       const supabase = createClient();
 
       const { data, error: queryError } = await supabase
@@ -276,31 +273,49 @@ export default function MahasiswaRoomsPage() {
       if (signal.aborted) return;
       if (queryError) throw queryError;
 
-      const nextRooms = ((data ?? []) as Room[]).map((room) => ({
+      return ((data ?? []) as Room[]).map((room) => ({
         ...room,
         facilities: Array.isArray(room.facilities)
           ? room.facilities
           : [],
       }));
+    };
 
-      setRooms(nextRooms);
+    return fetchRooms()
+      .then((result) => {
+        if (signal.aborted || !result) return;
 
-      setSelectedRoom((current) =>
-        current
-          ? nextRooms.find((room) => room.id === current.id) ?? null
-          : null,
-      );
-    } catch (err) {
-      if (signal.aborted) return;
+        setRooms(result);
+        setError("");
 
-      console.error("Load rooms:", err);
-      setError(
-        getErrorMessage(err, "Gagal mengambil data ruangan."),
-      );
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
+        setSelectedRoom((current) =>
+          current
+            ? result.find((room) => room.id === current.id) ?? null
+            : null,
+        );
+      })
+      .catch((err: unknown) => {
+        if (signal.aborted) return;
+
+        console.error("Load rooms:", err);
+
+        setError(
+          getErrorMessage(err, "Gagal mengambil data ruangan."),
+        );
+      })
+      .finally(() => {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
+      });
   }, []);
+
+  function refreshRooms() {
+    setLoading(true);
+    setError("");
+
+    return loadRooms();
+  }
 
   useEffect(() => {
     void loadRooms();
@@ -361,7 +376,7 @@ export default function MahasiswaRoomsPage() {
 
         <button
           type="button"
-          onClick={() => void loadRooms()}
+         onClick={() => void refreshRooms()}
           disabled={loading}
           className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
         >

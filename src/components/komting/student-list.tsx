@@ -102,7 +102,7 @@ export default function StudentList() {
   const [actionError, setActionError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const loadStudents = useCallback(async () => {
+    const loadStudents = useCallback(() => {
     controllerRef.current?.abort();
 
     const controller = new AbortController();
@@ -110,10 +110,7 @@ export default function StudentList() {
 
     const { signal } = controller;
 
-    setLoading(true);
-    setLoadError("");
-
-    try {
+    const fetchStudents = async () => {
       const supabase = createClient();
 
       const {
@@ -158,26 +155,46 @@ export default function StudentList() {
       if (classResult.error) throw classResult.error;
       if (studentResult.error) throw studentResult.error;
 
-      setClassInfo(classResult.data as ClassInfo);
-
-      setStudents(
-        [...((studentResult.data ?? []) as Student[])].sort(
-          (a, b) =>
-            a.full_name.localeCompare(b.full_name, "id"),
+      return {
+        classInfo: classResult.data as ClassInfo,
+        students: [
+          ...((studentResult.data ?? []) as Student[]),
+        ].sort((a, b) =>
+          a.full_name.localeCompare(b.full_name, "id"),
         ),
-      );
-    } catch (err) {
-      if (signal.aborted) return;
+      };
+    };
 
-      console.error("Load student directory:", err);
+    return fetchStudents()
+      .then((result) => {
+        if (signal.aborted || !result) return;
 
-      setLoadError(
-        getErrorMessage(err, "Gagal memuat daftar mahasiswa."),
-      );
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
+        setClassInfo(result.classInfo);
+        setStudents(result.students);
+        setLoadError("");
+      })
+      .catch((err: unknown) => {
+        if (signal.aborted) return;
+
+        console.error("Load student directory:", err);
+
+        setLoadError(
+          getErrorMessage(err, "Gagal memuat daftar mahasiswa."),
+        );
+      })
+      .finally(() => {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
+      });
   }, []);
+
+  function refreshStudents() {
+    setLoading(true);
+    setLoadError("");
+
+    return loadStudents();
+  }
 
   useEffect(() => {
     void loadStudents();
@@ -256,7 +273,7 @@ export default function StudentList() {
           : `${student.full_name} berhasil dinonaktifkan.`,
       );
 
-      await loadStudents();
+      await refreshStudents();
     } catch (err) {
       console.error("Update student status:", err);
 
@@ -318,7 +335,7 @@ export default function StudentList() {
 
         <button
           type="button"
-          onClick={() => void loadStudents()}
+          onClick={() => void refreshStudents()}
           disabled={loading || busyStudentId !== null}
           className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
         >

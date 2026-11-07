@@ -163,7 +163,7 @@ export default function StudentRequestInbox() {
   const [actionError, setActionError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const loadRequests = useCallback(async () => {
+    const loadRequests = useCallback(() => {
     controllerRef.current?.abort();
 
     const controller = new AbortController();
@@ -171,10 +171,7 @@ export default function StudentRequestInbox() {
 
     const { signal } = controller;
 
-    setLoading(true);
-    setLoadError("");
-
-    try {
+    const fetchRequests = async () => {
       const supabase = createClient();
 
       const [requestResult, studentResult, roomResult] =
@@ -201,38 +198,58 @@ export default function StudentRequestInbox() {
       if (studentResult.error) throw studentResult.error;
       if (roomResult.error) throw roomResult.error;
 
-      const nextRequests =
-        (requestResult.data ?? []) as StudentRequest[];
+      return {
+        requests: (requestResult.data ?? []) as StudentRequest[],
+        students: (studentResult.data ?? []) as Student[],
+        rooms: (roomResult.data ?? []) as Room[],
+      };
+    };
 
-      setRequests(nextRequests);
-      setStudents((studentResult.data ?? []) as Student[]);
-      setRooms((roomResult.data ?? []) as Room[]);
+    return fetchRequests()
+      .then((result) => {
+        if (signal.aborted || !result) return;
 
-      setReview((current) =>
-        current &&
-        nextRequests.some(
-          (request) =>
-            request.id === current.requestId &&
-            request.status === "pending",
-        )
-          ? current
-          : null,
-      );
-    } catch (err) {
-      if (signal.aborted) return;
+        setRequests(result.requests);
+        setStudents(result.students);
+        setRooms(result.rooms);
+        setLoadError("");
 
-      console.error("Load student requests:", err);
+        setReview((current) =>
+          current &&
+          result.requests.some(
+            (request) =>
+              request.id === current.requestId &&
+              request.status === "pending",
+          )
+            ? current
+            : null,
+        );
+      })
+      .catch((err: unknown) => {
+        if (signal.aborted) return;
 
-      setLoadError(
-        getErrorMessage(
-          err,
-          "Gagal memuat pengajuan mahasiswa.",
-        ),
-      );
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
+        console.error("Load student requests:", err);
+
+        setLoadError(
+          getErrorMessage(
+            err,
+            "Gagal memuat pengajuan mahasiswa.",
+          ),
+        );
+      })
+      .finally(() => {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
+      });
   }, []);
+
+  function refreshRequests() {
+    setLoading(true);
+    setLoadError("");
+
+    return loadRequests();
+  }
 
   useEffect(() => {
     void loadRequests();
@@ -340,7 +357,7 @@ export default function StudentRequestInbox() {
           : "Pengajuan berhasil ditolak. Alasan penolakan telah dikirim kepada mahasiswa.",
       );
 
-      await loadRequests();
+      await refreshRequests();
     } catch (err) {
       console.error("Review student request:", err);
 
@@ -398,7 +415,7 @@ export default function StudentRequestInbox() {
 
         <button
           type="button"
-          onClick={() => void loadRequests()}
+          onClick={() => void refreshRequests()}
           disabled={loading || busyId !== null}
           className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
         >

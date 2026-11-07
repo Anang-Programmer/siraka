@@ -93,7 +93,7 @@ export default function StudentApproval() {
   const [actionError, setActionError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const loadRequests = useCallback(async () => {
+   const loadRequests = useCallback(() => {
     controllerRef.current?.abort();
 
     const controller = new AbortController();
@@ -101,10 +101,7 @@ export default function StudentApproval() {
 
     const { signal } = controller;
 
-    setLoading(true);
-    setLoadError("");
-
-    try {
+    const fetchRequests = async () => {
       const supabase = createClient();
 
       const {
@@ -196,37 +193,56 @@ export default function StudentApproval() {
         applicant: applicantMap.get(request.user_id) ?? null,
       }));
 
-      setClassName(
-        classResult.data
+      return {
+        className: classResult.data
           ? `${classResult.data.class_code} · ${classResult.data.class_name}`
           : "Informasi kelas tidak tersedia",
-      );
+        requests: nextRequests,
+      };
+    };
 
-      setRequests(nextRequests);
+    return fetchRequests()
+      .then((result) => {
+        if (signal.aborted || !result) return;
 
-      setReview((current) =>
-        current &&
-        nextRequests.some(
-          (request) => request.id === current.requestId,
-        )
-          ? current
-          : null,
-      );
-    } catch (err) {
-      if (signal.aborted) return;
+        setClassName(result.className);
+        setRequests(result.requests);
+        setLoadError("");
 
-      console.error("Load student registrations:", err);
+        setReview((current) =>
+          current &&
+          result.requests.some(
+            (request) => request.id === current.requestId,
+          )
+            ? current
+            : null,
+        );
+      })
+      .catch((err: unknown) => {
+        if (signal.aborted) return;
 
-      setLoadError(
-        getErrorMessage(
-          err,
-          "Gagal mengambil permohonan mahasiswa.",
-        ),
-      );
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
+        console.error("Load student registrations:", err);
+
+        setLoadError(
+          getErrorMessage(
+            err,
+            "Gagal mengambil permohonan mahasiswa.",
+          ),
+        );
+      })
+      .finally(() => {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
+      });
   }, []);
+
+  function refreshRequests() {
+    setLoading(true);
+    setLoadError("");
+
+    return loadRequests();
+  }
 
   useEffect(() => {
     void loadRequests();
@@ -325,7 +341,7 @@ export default function StudentApproval() {
       );
 
       setReview(null);
-      await loadRequests();
+      await refreshRequests();
     } catch (err) {
       console.error("Review registration:", err);
 
@@ -361,7 +377,7 @@ export default function StudentApproval() {
 
         <button
           type="button"
-          onClick={() => void loadRequests()}
+          onClick={() => void refreshRequests()}
           disabled={loading || busyId !== null}
           className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
         >

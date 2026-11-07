@@ -224,7 +224,7 @@ export default function BookingForm() {
     (room) => room.id === form.roomId,
   );
 
-  const loadRooms = useCallback(async () => {
+    const loadRooms = useCallback(() => {
     controllerRef.current?.abort();
 
     const controller = new AbortController();
@@ -232,10 +232,7 @@ export default function BookingForm() {
 
     const { signal } = controller;
 
-    setRoomsLoading(true);
-    setRoomsError("");
-
-    try {
+    const fetchRooms = async () => {
       const supabase = createClient();
 
       const { data, error: queryError } = await supabase
@@ -249,26 +246,43 @@ export default function BookingForm() {
       if (signal.aborted) return;
       if (queryError) throw queryError;
 
-      setRooms(
-        ((data ?? []) as Room[]).map((room) => ({
-          ...room,
-          facilities: Array.isArray(room.facilities)
-            ? room.facilities
-            : [],
-        })),
-      );
-    } catch (err) {
-      if (signal.aborted) return;
+      return ((data ?? []) as Room[]).map((room) => ({
+        ...room,
+        facilities: Array.isArray(room.facilities)
+          ? room.facilities
+          : [],
+      }));
+    };
 
-      console.error("Load rooms:", err);
+    return fetchRooms()
+      .then((result) => {
+        if (signal.aborted || !result) return;
 
-      setRoomsError(
-        getErrorMessage(err, "Gagal mengambil data ruangan."),
-      );
-    } finally {
-      if (!signal.aborted) setRoomsLoading(false);
-    }
+        setRooms(result);
+        setRoomsError("");
+      })
+      .catch((err: unknown) => {
+        if (signal.aborted) return;
+
+        console.error("Load rooms:", err);
+
+        setRoomsError(
+          getErrorMessage(err, "Gagal mengambil data ruangan."),
+        );
+      })
+      .finally(() => {
+        if (!signal.aborted) {
+          setRoomsLoading(false);
+        }
+      });
   }, []);
+
+  function refreshRooms() {
+    setRoomsLoading(true);
+    setRoomsError("");
+
+    return loadRooms();
+  }
 
   useEffect(() => {
     void loadRooms();
@@ -660,7 +674,7 @@ export default function BookingForm() {
 
                   <button
                     type="button"
-                    onClick={() => void loadRooms()}
+                    onClick={() => void refreshRooms()}
                     className="mt-2 rounded-md font-bold underline focus-visible:outline-2 focus-visible:outline-red-700"
                   >
                     Coba muat ulang

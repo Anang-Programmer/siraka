@@ -21,10 +21,11 @@ async function LoginContent() {
 export default function LoginPage() {
   return (
     <main className="grid min-h-screen bg-white lg:grid-cols-2">
-      <section className="relative flex flex-col justify-start overflow-hidden bg-primary px-6 py-12 text-white sm:px-12 lg:px-16 lg:py-20">        <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-white/5"
-      />
+      <section className="relative flex flex-col justify-start overflow-hidden bg-primary px-6 py-12 text-white sm:px-12 lg:px-16 lg:py-20">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-white/5"
+        />
 
         <div
           aria-hidden="true"
@@ -50,16 +51,17 @@ export default function LoginPage() {
               </p>
 
               <p className="mt-1 max-w-sm text-xs leading-relaxed text-white/85 sm:text-sm">
-                Sistem Informasi Penjadwalan &amp; Peminjaman Ruang Kelas dan
-                Laboratorium
+                Sistem Informasi Penjadwalan &amp; Peminjaman Ruang
+                Kelas dan Laboratorium
               </p>
             </div>
           </div>
 
           <p className="mt-7 max-w-lg text-sm leading-7 text-white/80">
-            Solusi cerdas tata kelola sarana perkuliahan dan riset terpadu
-            Universitas Negeri Medan. Mewujudkan efisiensi logistik kampus
-            dengan verifikasi dan manajemen yang transparan.
+            Solusi cerdas tata kelola sarana perkuliahan dan riset
+            terpadu Universitas Negeri Medan. Mewujudkan efisiensi
+            logistik kampus dengan verifikasi dan manajemen yang
+            transparan.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
@@ -133,8 +135,8 @@ export default function LoginPage() {
             </h1>
 
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Silakan login untuk akses penjadwalan dan reservasi ruang kelas
-              serta laboratorium UNIMED.
+              Silakan login untuk akses penjadwalan dan reservasi
+              ruang kelas serta laboratorium UNIMED.
             </p>
           </div>
 
@@ -164,8 +166,8 @@ export default function LoginPage() {
 
         <footer className="mx-auto mt-8 w-full max-w-md border-t border-slate-100 pt-5">
           <p className="text-center text-[10px] leading-relaxed text-muted">
-            © 2026 SIRAKA · Sistem Informasi Penjadwalan dan Peminjaman Ruang
-            Kelas dan Laboratorium
+            © 2026 SIRAKA · Sistem Informasi Penjadwalan dan
+            Peminjaman Ruang Kelas dan Laboratorium
           </p>
         </footer>
       </section>

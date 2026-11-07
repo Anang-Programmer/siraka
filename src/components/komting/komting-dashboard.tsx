@@ -189,7 +189,7 @@ export default function KomtingDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadDashboard = useCallback(async () => {
+    const loadDashboard = useCallback(() => {
     controllerRef.current?.abort();
 
     const controller = new AbortController();
@@ -197,10 +197,7 @@ export default function KomtingDashboard() {
 
     const { signal } = controller;
 
-    setLoading(true);
-    setError("");
-
-    try {
+    const fetchDashboard = async () => {
       const supabase = createClient();
 
       const {
@@ -293,7 +290,7 @@ export default function KomtingDashboard() {
         (student) => student.is_active,
       ).length;
 
-      setSummary({
+      return {
         fullName: profile.full_name,
         classLabel: classResult.data
           ? `${classResult.data.class_code} · ${classResult.data.class_name}`
@@ -304,22 +301,41 @@ export default function KomtingDashboard() {
         pendingStudentRequests: requestResult.count ?? 0,
         activeStudents,
         inactiveStudents: students.length - activeStudents,
+      };
+    };
+
+    return fetchDashboard()
+      .then((result) => {
+        if (signal.aborted || !result) return;
+
+        setSummary(result);
+        setError("");
+      })
+      .catch((err: unknown) => {
+        if (signal.aborted) return;
+
+        console.error("Load Komting dashboard:", err);
+
+        setError(
+          getErrorMessage(
+            err,
+            "Gagal memuat dashboard Komting.",
+          ),
+        );
+      })
+      .finally(() => {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
       });
-    } catch (err) {
-      if (signal.aborted) return;
-
-      console.error("Load Komting dashboard:", err);
-
-      setError(
-        getErrorMessage(
-          err,
-          "Gagal memuat dashboard Komting.",
-        ),
-      );
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
   }, []);
+
+  function refreshDashboard() {
+    setLoading(true);
+    setError("");
+
+    return loadDashboard();
+  }
 
   useEffect(() => {
     void loadDashboard();
@@ -396,7 +412,7 @@ export default function KomtingDashboard() {
 
         <button
           type="button"
-          onClick={() => void loadDashboard()}
+          onClick={() => void refreshDashboard()}
           disabled={loading}
           className="btn-outline w-fit rounded-xl text-xs shadow-sm"
         >

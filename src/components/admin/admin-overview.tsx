@@ -183,7 +183,7 @@ export default function AdminOverview() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadDashboard = useCallback(async () => {
+    const loadDashboard = useCallback(() => {
     controllerRef.current?.abort();
 
     const controller = new AbortController();
@@ -191,10 +191,7 @@ export default function AdminOverview() {
 
     const { signal } = controller;
 
-    setLoading(true);
-    setError("");
-
-    try {
+    const fetchDashboard = async () => {
       const supabase = createClient();
 
       const [
@@ -258,31 +255,52 @@ export default function AdminOverview() {
 
       if (failed?.error) throw failed.error;
 
-      setMetrics({
-        rooms: roomResult.count ?? 0,
-        classes: classResult.count ?? 0,
-        users: userResult.count ?? 0,
-        pending: pendingResult.count ?? 0,
-        approved: approvedResult.count ?? 0,
-        schedules: scheduleResult.count ?? 0,
+      return {
+        metrics: {
+          rooms: roomResult.count ?? 0,
+          classes: classResult.count ?? 0,
+          users: userResult.count ?? 0,
+          pending: pendingResult.count ?? 0,
+          approved: approvedResult.count ?? 0,
+          schedules: scheduleResult.count ?? 0,
+        },
+        bookings: (bookingResult.data ?? []) as Booking[],
+      };
+    };
+
+    return fetchDashboard()
+      .then((result) => {
+        if (signal.aborted || !result) return;
+
+        setMetrics(result.metrics);
+        setBookings(result.bookings);
+        setError("");
+      })
+      .catch((err: unknown) => {
+        if (signal.aborted) return;
+
+        console.error("Load Admin dashboard:", err);
+
+        setError(
+          getErrorMessage(
+            err,
+            "Gagal mengambil data dashboard.",
+          ),
+        );
+      })
+      .finally(() => {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
       });
-
-      setBookings((bookingResult.data ?? []) as Booking[]);
-    } catch (err) {
-      if (signal.aborted) return;
-
-      console.error("Load Admin dashboard:", err);
-
-      setError(
-        getErrorMessage(
-          err,
-          "Gagal mengambil data dashboard.",
-        ),
-      );
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
   }, []);
+
+  function refreshDashboard() {
+    setLoading(true);
+    setError("");
+
+    return loadDashboard();
+  }
 
   useEffect(() => {
     void loadDashboard();
@@ -399,7 +417,7 @@ export default function AdminOverview() {
 
         <button
           type="button"
-          onClick={() => void loadDashboard()}
+          onClick={() => void refreshDashboard()}
           disabled={loading}
           className="btn-outline w-fit rounded-xl text-xs shadow-sm"
         >

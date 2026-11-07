@@ -185,6 +185,7 @@ function Field({
 
 export default function StudentRoomRequest() {
   const now = useCurrentTime();
+
   const controllerRef = useRef<AbortController | null>(null);
   const mutationBusy = useRef(false);
 
@@ -217,7 +218,7 @@ export default function StudentRoomRequest() {
     }));
   }
 
-  const loadData = useCallback(async () => {
+    const loadData = useCallback(() => {
     controllerRef.current?.abort();
 
     const controller = new AbortController();
@@ -225,10 +226,7 @@ export default function StudentRoomRequest() {
 
     const { signal } = controller;
 
-    setLoading(true);
-    setLoadError("");
-
-    try {
+    const fetchData = async () => {
       const supabase = createClient();
 
       const {
@@ -292,20 +290,36 @@ export default function StudentRoomRequest() {
       if (requestResult.error) throw requestResult.error;
       if (roomResult.error) throw roomResult.error;
 
-      setClassInfo(classResult.data as ClassInfo);
-      setRequests((requestResult.data ?? []) as RoomRequest[]);
-      setRooms((roomResult.data ?? []) as Room[]);
-    } catch (err) {
-      if (signal.aborted) return;
+      return {
+        classInfo: classResult.data as ClassInfo,
+        requests: (requestResult.data ?? []) as RoomRequest[],
+        rooms: (roomResult.data ?? []) as Room[],
+      };
+    };
 
-      console.error("Load requests:", err);
+    return fetchData()
+      .then((result) => {
+        if (signal.aborted || !result) return;
 
-      setLoadError(
-        getErrorMessage(err, "Gagal memuat data pengajuan."),
-      );
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
+        setClassInfo(result.classInfo);
+        setRequests(result.requests);
+        setRooms(result.rooms);
+        setLoadError("");
+      })
+      .catch((err: unknown) => {
+        if (signal.aborted) return;
+
+        console.error("Load requests:", err);
+
+        setLoadError(
+          getErrorMessage(err, "Gagal memuat data pengajuan."),
+        );
+      })
+      .finally(() => {
+        if (!signal.aborted) {
+          setLoading(false);
+        }
+      });
   }, []);
 
   useEffect(() => {
@@ -315,6 +329,13 @@ export default function StudentRoomRequest() {
       controllerRef.current?.abort();
     };
   }, [loadData]);
+
+  function refreshData() {
+    setLoading(true);
+    setLoadError("");
+
+    return loadData();
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -359,6 +380,7 @@ export default function StudentRoomRequest() {
     const start = new Date(
       `${form.date}T${form.start}:00+07:00`,
     );
+
     const end = new Date(
       `${form.date}T${form.end}:00+07:00`,
     );
@@ -456,11 +478,12 @@ export default function StudentRoomRequest() {
       if (rpcError) throw rpcError;
 
       setForm({ ...initialForm });
+
       setSuccess(
         "Pengajuan berhasil dikirim. Komting akan meninjau kebutuhanmu.",
       );
 
-      await loadData();
+      await refreshData();
     } catch (err) {
       console.error("Submit request:", err);
 
@@ -475,14 +498,13 @@ export default function StudentRoomRequest() {
 
   async function handleCancel(request: RoomRequest) {
     if (!ready || mutationBusy.current) return;
+    if (request.status !== "pending") return;
 
-    if (
-      !window.confirm(
-        `Batalkan pengajuan "${request.activity_title}"?`,
-      )
-    ) {
-      return;
-    }
+    const confirmed = window.confirm(
+      `Batalkan pengajuan "${request.activity_title}"?`,
+    );
+
+    if (!confirmed) return;
 
     mutationBusy.current = true;
     setCancellingId(request.id);
@@ -492,15 +514,18 @@ export default function StudentRoomRequest() {
     try {
       const supabase = createClient();
 
-      const { error } = await supabase.rpc(
+      const { error: rpcError } = await supabase.rpc(
         "cancel_student_room_request",
-        { p_request_id: request.id },
+        {
+          p_request_id: request.id,
+        },
       );
 
-      if (error) throw error;
+      if (rpcError) throw rpcError;
 
       setSuccess("Pengajuan berhasil dibatalkan.");
-      await loadData();
+
+      await refreshData();
     } catch (err) {
       console.error("Cancel request:", err);
 
@@ -566,7 +591,7 @@ export default function StudentRoomRequest() {
 
         <button
           type="button"
-          onClick={() => void loadData()}
+          onClick={() => void refreshData()}
           disabled={loading || busy}
           className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
         >
@@ -680,7 +705,7 @@ export default function StudentRoomRequest() {
               Formulir kebutuhan ruangan
             </legend>
 
-            <div>
+            <section>
               <div className="mb-5 flex items-center gap-3">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
                   1
@@ -726,9 +751,9 @@ export default function StudentRoomRequest() {
                   />
                 </Field>
               </div>
-            </div>
+            </section>
 
-            <div className="border-t border-slate-100 pt-6">
+            <section className="border-t border-slate-100 pt-6">
               <div className="mb-5 flex items-center gap-3">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
                   2
@@ -808,9 +833,9 @@ export default function StudentRoomRequest() {
                   />
                 </Field>
               </div>
-            </div>
+            </section>
 
-            <div className="border-t border-slate-100 pt-6">
+            <section className="border-t border-slate-100 pt-6">
               <div className="mb-5 flex items-center gap-3">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
                   3
@@ -880,8 +905,8 @@ export default function StudentRoomRequest() {
                 id="room-preference-help"
                 className="mt-3 text-[11px] leading-6 text-muted"
               >
-                Pilihan ruangan hanya merupakan preferensi dan belum
-                menjadi reservasi.
+                Pilihan ruangan hanya merupakan preferensi dan
+                belum menjadi reservasi.
               </p>
 
               {selectedRoom && (
@@ -944,7 +969,7 @@ export default function StudentRoomRequest() {
                   />
                 </Field>
               </div>
-            </div>
+            </section>
 
             <div className="flex flex-col justify-between gap-5 border-t border-slate-100 pt-6 sm:flex-row sm:items-center">
               <p className="max-w-xl text-[11px] leading-6 text-muted">
@@ -960,6 +985,7 @@ export default function StudentRoomRequest() {
                 {submitting
                   ? "Mengirim..."
                   : "Kirim ke Komting"}
+
                 {!submitting && (
                   <span aria-hidden="true">→</span>
                 )}
@@ -1018,6 +1044,7 @@ export default function StudentRoomRequest() {
           <div className="space-y-4">
             {requests.map((request) => {
               const status = statusConfig[request.status];
+
               const preferredRoom = rooms.find(
                 (room) => room.id === request.preferred_room_id,
               );
@@ -1046,6 +1073,7 @@ export default function StudentRoomRequest() {
                         aria-hidden="true"
                         className={`h-1.5 w-1.5 rounded-full ${status.dot}`}
                       />
+
                       {status.label}
                     </span>
                   </div>
@@ -1054,9 +1082,7 @@ export default function StudentRoomRequest() {
                     {[
                       {
                         label: "Tanggal",
-                        value: dateLabel(
-                          request.preferred_date,
-                        ),
+                        value: dateLabel(request.preferred_date),
                       },
                       {
                         label: "Waktu",
@@ -1086,6 +1112,7 @@ export default function StudentRoomRequest() {
                         <dt className="text-[10px] text-muted">
                           {item.label}
                         </dt>
+
                         <dd className="mt-2 text-xs font-semibold leading-6 text-primary">
                           {item.value}
                         </dd>
@@ -1116,6 +1143,7 @@ export default function StudentRoomRequest() {
                       <p className="text-xs font-bold text-primary">
                         Catatan tambahan
                       </p>
+
                       <p className="mt-2 whitespace-pre-wrap break-words text-xs leading-7 text-muted">
                         {request.notes}
                       </p>

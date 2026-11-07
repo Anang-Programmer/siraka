@@ -245,18 +245,13 @@ export default function BookingManagement() {
   const [actionError, setActionError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const loadBookings = useCallback(async () => {
+  const loadBookings = useCallback(() => {
     controllerRef.current?.abort();
-
     const controller = new AbortController();
     controllerRef.current = controller;
-
     const { signal } = controller;
 
-    setLoading(true);
-    setLoadError("");
-
-    try {
+    const fetchBookings = async () => {
       const supabase = createClient();
 
       const { data, error: bookingError } = await supabase
@@ -271,11 +266,7 @@ export default function BookingManagement() {
 
       const rows = (data ?? []) as Booking[];
 
-      if (rows.length === 0) {
-        setBookings([]);
-        setReview(null);
-        return;
-      }
+      if (rows.length === 0) return [] as BookingView[];
 
       const requesterIds = [
         ...new Set(rows.map((item) => item.requester_id)),
@@ -357,33 +348,36 @@ export default function BookingManagement() {
         krs: krsMap.get(booking.id) ?? null,
       }));
 
-      setBookings(nextBookings);
+      return nextBookings;
+    };
 
-      setReview((current) =>
-        current &&
-        nextBookings.some(
-          (booking) =>
-            booking.id === current.bookingId &&
-            (
-              booking.status === "pending" ||
-              booking.status === "under_review"
-            ),
-        )
-          ? current
-          : null,
-      );
-    } catch (err) {
-      if (signal.aborted) return;
-
-      console.error("Load Admin bookings:", err);
-
-      setLoadError(
-        getErrorMessage(err, "Gagal mengambil data booking."),
-      );
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
+    return fetchBookings()
+      .then((nextBookings) => {
+        if (signal.aborted || !nextBookings) return;
+        setBookings(nextBookings);
+        setLoadError("");
+        setReview((current) =>
+          current && nextBookings.some(
+            (booking) => booking.id === current.bookingId &&
+              (booking.status === "pending" || booking.status === "under_review"),
+          ) ? current : null,
+        );
+      })
+      .catch((err: unknown) => {
+        if (signal.aborted) return;
+        console.error("Load Admin bookings:", err);
+        setLoadError(getErrorMessage(err, "Gagal mengambil data booking."));
+      })
+      .finally(() => {
+        if (!signal.aborted) setLoading(false);
+      });
   }, []);
+
+  function refreshBookings() {
+    setLoading(true);
+    setLoadError("");
+    return loadBookings();
+  }
 
   useEffect(() => {
     void loadBookings();
@@ -579,7 +573,7 @@ export default function BookingManagement() {
       );
 
       setReview(null);
-      await loadBookings();
+      await refreshBookings();
     } catch (err) {
       console.error("Review Admin booking:", err);
 
@@ -644,7 +638,7 @@ export default function BookingManagement() {
 
         <button
           type="button"
-          onClick={() => void loadBookings()}
+          onClick={() => void refreshBookings()}
           disabled={loading || busyId !== null}
           className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
         >
