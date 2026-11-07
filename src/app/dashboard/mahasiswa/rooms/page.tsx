@@ -1,9 +1,15 @@
-
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getErrorMessage } from "@/lib/errors";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { getErrorMessage } from "@/lib/errors";
 
 type Room = {
   id: string;
@@ -18,51 +24,290 @@ type Room = {
   description: string | null;
 };
 
-type FilterType = "semua" | "kelas" | "laboratorium";
+type Filter = "semua" | Room["room_type"];
+
+const filters: { value: Filter; label: string }[] = [
+  { value: "semua", label: "Semua Ruangan" },
+  { value: "kelas", label: "Ruang Kelas" },
+  { value: "laboratorium", label: "Laboratorium" },
+];
+
+function BuildingIcon({
+  className = "h-5 w-5",
+}: {
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <path d="M4 21V5a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v16" />
+      <path d="M15 9h4a1 1 0 0 1 1 1v11M2 21h20" />
+      <path d="M8 8h3M8 12h3M8 16h3" />
+    </svg>
+  );
+}
+
+function typeLabel(type: Room["room_type"]) {
+  return type === "kelas" ? "Ruang Kelas" : "Laboratorium";
+}
+
+function locationLabel(room: Room) {
+  return (
+    [
+      room.building,
+      room.floor ? `Lantai ${room.floor}` : null,
+      room.location,
+    ]
+      .filter(Boolean)
+      .join(" · ") || "Lokasi belum diisi"
+  );
+}
+
+function RoomDetail({
+  room,
+  onClose,
+}: {
+  room: Room | null;
+  onClose: () => void;
+}) {
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+
+    if (!dialog) return;
+
+    if (room && !dialog.open) dialog.showModal();
+    if (!room && dialog.open) dialog.close();
+  }, [room]);
+
+  return (
+    <dialog
+      ref={dialogRef}
+      aria-labelledby="room-detail-title"
+      onCancel={onClose}
+      onClose={onClose}
+      onClick={(event) => {
+        if (event.target !== event.currentTarget) return;
+
+        const rect = event.currentTarget.getBoundingClientRect();
+
+        if (
+          event.clientX < rect.left ||
+          event.clientX > rect.right ||
+          event.clientY < rect.top ||
+          event.clientY > rect.bottom
+        ) {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-xl overflow-y-auto rounded-3xl border-0 bg-white p-0 text-ink shadow-2xl backdrop:bg-slate-950/60 backdrop:backdrop-blur-sm"
+    >
+      {room && (
+        <>
+          <div className="relative overflow-hidden bg-[#173A56] p-6 text-white">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full border border-white/10"
+            />
+
+            <div className="relative flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                <span className="inline-flex rounded-lg bg-white/10 px-3 py-1.5 text-[10px] font-semibold text-cyan-100">
+                  {typeLabel(room.room_type)}
+                </span>
+
+                <h2
+                  id="room-detail-title"
+                  className="mt-4 break-words font-heading text-2xl font-extrabold"
+                >
+                  {room.room_name}
+                </h2>
+
+                <p className="mt-2 text-xs tracking-wider text-slate-300">
+                  {room.room_code}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Tutup detail ruangan"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-white"
+              >
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-6 p-6">
+            <dl className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-slate-200 p-4">
+                <dt className="text-xs text-muted">
+                  Kapasitas
+                </dt>
+                <dd className="mt-2 text-lg font-bold text-primary">
+                  {room.capacity} orang
+                </dd>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 p-4">
+                <dt className="text-xs text-muted">
+                  Status Data
+                </dt>
+                <dd className="mt-2 text-lg font-bold text-emerald-700">
+                  Aktif
+                </dd>
+              </div>
+            </dl>
+
+            <section>
+              <h3 className="text-sm font-bold text-primary">
+                Lokasi Ruangan
+              </h3>
+              <p className="mt-2 text-sm leading-7 text-muted">
+                {locationLabel(room)}
+              </p>
+            </section>
+
+            <section>
+              <h3 className="text-sm font-bold text-primary">
+                Fasilitas Tersedia
+              </h3>
+
+              {room.facilities.length > 0 ? (
+                <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {room.facilities.map((facility, index) => (
+                    <li
+                      key={`${facility}-${index}`}
+                      className="flex items-start gap-2 rounded-xl border border-slate-200 px-3 py-3 text-xs text-primary"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className="font-bold text-teal-700"
+                      >
+                        ✓
+                      </span>
+                      <span className="break-words">
+                        {facility}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-2 text-sm text-muted">
+                  Belum ada informasi fasilitas.
+                </p>
+              )}
+            </section>
+
+            <section>
+              <h3 className="text-sm font-bold text-primary">
+                Tentang Ruangan
+              </h3>
+              <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-muted">
+                {room.description ||
+                  "Belum ada deskripsi tambahan untuk ruangan ini."}
+              </p>
+            </section>
+
+            <p className="rounded-2xl bg-slate-50 p-4 text-xs leading-6 text-muted">
+              Status aktif menunjukkan ruangan terdaftar aktif
+              dalam sistem. Periksa jadwal untuk mengetahui
+              ketersediaannya pada waktu tertentu.
+            </p>
+
+            <Link
+              href="/dashboard/mahasiswa/schedule"
+              className="btn-primary w-full rounded-xl"
+            >
+              Lihat Jadwal &amp; Ketersediaan
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+        </>
+      )}
+    </dialog>
+  );
+}
 
 export default function MahasiswaRoomsPage() {
   const loadController = useRef<AbortController | null>(null);
-  const [rooms, setRooms] = useState<Room[]>([]);
-  const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState<FilterType>("semua");
-  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
 
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(
+    null,
+  );
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<Filter>("semua");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const loadRooms = useCallback(() => {
+  const loadRooms = useCallback(async () => {
     loadController.current?.abort();
+
     const controller = new AbortController();
     loadController.current = controller;
+
     const { signal } = controller;
-    const request = async () => {
+
+    setLoading(true);
+    setError("");
+
+    try {
       const supabase = createClient();
 
       const { data, error: queryError } = await supabase
         .from("rooms")
         .select(
-          "id, room_code, room_name, room_type, building, floor, location, capacity, facilities, description"
+          "id, room_code, room_name, room_type, building, floor, location, capacity, facilities, description",
         )
         .eq("is_active", true)
         .order("room_code", { ascending: true });
 
-      if (signal?.aborted) return;
+      if (signal.aborted) return;
       if (queryError) throw queryError;
 
-      setRooms((data ?? []) as Room[]);
-    };
-    return request().catch((err: unknown) => {
-      if (signal?.aborted) return;
+      const nextRooms = ((data ?? []) as Room[]).map((room) => ({
+        ...room,
+        facilities: Array.isArray(room.facilities)
+          ? room.facilities
+          : [],
+      }));
+
+      setRooms(nextRooms);
+
+      setSelectedRoom((current) =>
+        current
+          ? nextRooms.find((room) => room.id === current.id) ?? null
+          : null,
+      );
+    } catch (err) {
+      if (signal.aborted) return;
+
       console.error("Load rooms:", err);
-      setError(getErrorMessage(err, "Gagal mengambil data ruangan."));
-    }).finally(() => {
-      if (!signal?.aborted) setLoading(false);
-    });
+      setError(
+        getErrorMessage(err, "Gagal mengambil data ruangan."),
+      );
+    } finally {
+      if (!signal.aborted) setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     void loadRooms();
-    return () => loadController.current?.abort();
+
+    return () => {
+      loadController.current?.abort();
+    };
   }, [loadRooms]);
 
   const filteredRooms = useMemo(() => {
@@ -72,7 +317,7 @@ export default function MahasiswaRoomsPage() {
       const matchesType =
         filter === "semua" || room.room_type === filter;
 
-      const searchableText = [
+      const text = [
         room.room_code,
         room.room_name,
         room.building,
@@ -85,138 +330,172 @@ export default function MahasiswaRoomsPage() {
         .join(" ")
         .toLocaleLowerCase("id");
 
-      const matchesSearch =
-        !keyword || searchableText.includes(keyword);
-
-      return matchesType && matchesSearch;
+      return matchesType && (!keyword || text.includes(keyword));
     });
   }, [rooms, search, filter]);
 
-  const classCount = rooms.filter(
-    (room) => room.room_type === "kelas"
-  ).length;
+  const ready = !loading && !error;
+  const hasFilter = search.trim() !== "" || filter !== "semua";
 
-  const laboratoryCount = rooms.filter(
-    (room) => room.room_type === "laboratorium"
-  ).length;
+  function resetFilters() {
+    setSearch("");
+    setFilter("semua");
+  }
 
   return (
-    <div className="space-y-7 pb-10">
-      {/* Header */}
-      <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <div className="space-y-7">
+      <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-sm font-medium text-slate-500">
-            Informasi Fasilitas Kampus
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+            Workspace / Fasilitas Kampus
           </p>
 
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
             Informasi Ruangan
           </h1>
 
-          <p className="mt-2 text-sm text-slate-500">
-            Temukan informasi ruang kelas dan laboratorium di lingkungan kampus.
+          <p className="mt-2 text-sm leading-7 text-muted">
+            Temukan ruang yang sesuai untuk kegiatan kelasmu.
           </p>
         </div>
 
         <button
-          onClick={() => {
-            setLoading(true);
-            setError("");
-            void loadRooms();
-          }}
+          type="button"
+          onClick={() => void loadRooms()}
           disabled={loading}
-          className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+          className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
         >
-          {loading ? "Memuat..." : "Muat Ulang"}
+          {loading ? "Memuat..." : "↻ Muat Ulang"}
         </button>
       </section>
 
-      {/* Summary */}
-      <section className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <p className="text-sm text-slate-500">Total Ruangan Aktif</p>
-          <p className="mt-2 text-3xl font-bold text-slate-900">
-            {loading ? "..." : rooms.length}
-          </p>
-        </div>
+      <section
+        aria-label="Statistik ruangan"
+        className="grid gap-4 sm:grid-cols-3"
+      >
+        {[
+          {
+            label: "Total Ruangan Aktif",
+            value: rooms.length,
+            note: "Terdaftar dalam sistem",
+            color: "bg-teal-50 text-teal-700",
+          },
+          {
+            label: "Ruang Kelas",
+            value: rooms.filter(
+              (room) => room.room_type === "kelas",
+            ).length,
+            note: "Untuk kegiatan perkuliahan",
+            color: "bg-sky-50 text-sky-700",
+          },
+          {
+            label: "Laboratorium",
+            value: rooms.filter(
+              (room) => room.room_type === "laboratorium",
+            ).length,
+            note: "Untuk praktikum dan riset",
+            color: "bg-indigo-50 text-indigo-700",
+          },
+        ].map((stat) => (
+          <div
+            key={stat.label}
+            className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/30 sm:p-6"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-xs font-semibold text-muted">
+                {stat.label}
+              </h2>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <p className="text-sm text-slate-500">Ruang Kelas</p>
-          <p className="mt-2 text-3xl font-bold text-slate-900">
-            {loading ? "..." : classCount}
-          </p>
-        </div>
+              <span className={`rounded-xl p-2 ${stat.color}`}>
+                <BuildingIcon />
+              </span>
+            </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <p className="text-sm text-slate-500">Laboratorium</p>
-          <p className="mt-2 text-3xl font-bold text-slate-900">
-            {loading ? "..." : laboratoryCount}
-          </p>
-        </div>
-      </section>
-
-      {/* Search and Filter */}
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex-1">
-            <label
-              htmlFor="room-search"
-              className="mb-2 block text-sm font-medium text-slate-700"
-            >
-              Cari Ruangan
-            </label>
-
-            <input
-              id="room-search"
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Cari kode, nama, gedung, lokasi, atau fasilitas..."
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-slate-500 focus:bg-white focus:ring-2 focus:ring-slate-100"
-            />
-          </div>
-
-          <div>
-            <p className="mb-2 text-sm font-medium text-slate-700">
-              Jenis Ruangan
+            <p className="mt-4 font-heading text-4xl font-extrabold text-primary">
+              {ready
+                ? String(stat.value).padStart(2, "0")
+                : "—"}
             </p>
 
-            <div className="flex flex-wrap gap-2">
-              {(
-                [
-                  ["semua", "Semua"],
-                  ["kelas", "Ruang Kelas"],
-                  ["laboratorium", "Laboratorium"],
-                ] as [FilterType, string][]
-              ).map(([value, label]) => (
+            <p className="mt-2 text-[11px] text-muted">
+              {stat.note}
+            </p>
+          </div>
+        ))}
+      </section>
+
+      <section className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 sm:p-6">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+          <div>
+            <label
+              htmlFor="room-search"
+              className="mb-3 block text-xs font-bold text-primary"
+            >
+              Cari ruangan
+            </label>
+
+            <div className="relative">
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                aria-hidden="true"
+                className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-muted"
+              >
+                <circle cx="10.5" cy="10.5" r="6.5" />
+                <path d="m16 16 5 5" />
+              </svg>
+
+              <input
+                id="room-search"
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Cari nama, kode, gedung, atau fasilitas..."
+                className="input-field min-h-11 rounded-xl pl-11"
+              />
+            </div>
+          </div>
+
+          <fieldset>
+            <legend className="mb-3 text-xs font-bold text-primary">
+              Jenis ruangan
+            </legend>
+
+            <div className="flex flex-wrap gap-1 rounded-2xl bg-slate-100 p-1">
+              {filters.map((item) => (
                 <button
-                  key={value}
-                  onClick={() => setFilter(value)}
-                  className={`rounded-lg px-4 py-2.5 text-sm font-medium transition ${
-                    filter === value
-                      ? "bg-slate-900 text-white"
-                      : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                  key={item.value}
+                  type="button"
+                  aria-pressed={filter === item.value}
+                  onClick={() => setFilter(item.value)}
+                  className={`min-h-10 rounded-xl px-3 py-2 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-primary ${
+                    filter === item.value
+                      ? "bg-white text-primary shadow-sm"
+                      : "text-muted hover:text-primary"
                   }`}
                 >
-                  {label}
+                  {item.label}
                 </button>
               ))}
             </div>
-          </div>
+          </fieldset>
         </div>
 
-        {(search || filter !== "semua") && (
-          <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3">
-            <p className="text-xs text-slate-500">
-              Menampilkan {filteredRooms.length} dari {rooms.length} ruangan
+        {hasFilter && (
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+            <p className="text-xs text-muted">
+              {ready
+                ? `${filteredRooms.length} ruangan sesuai pencarian`
+                : "Hasil pencarian belum tersedia"}
             </p>
 
             <button
-              onClick={() => {
-                setSearch("");
-                setFilter("semua");
-              }}
-              className="text-xs font-medium text-blue-700 hover:underline"
+              type="button"
+              onClick={resetFilters}
+              className="rounded-md text-xs font-bold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
             >
               Reset filter
             </button>
@@ -224,288 +503,187 @@ export default function MahasiswaRoomsPage() {
         )}
       </section>
 
-      {/* Error */}
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <p
+          role="alert"
+          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+        >
           {error}
-        </div>
+        </p>
       )}
 
-      {/* Room List */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">
-              Daftar Ruangan
-            </h2>
+      <section>
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="h-6 w-1 rounded-full bg-secondary"
+            />
 
-            <p className="mt-1 text-sm text-slate-500">
-              Informasi ruangan yang tersedia dalam sistem.
-            </p>
+            <h2 className="font-heading text-lg font-extrabold text-primary">
+              Jelajahi Ruangan
+            </h2>
           </div>
 
-          {!loading && (
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+          {ready && (
+            <span
+              role="status"
+              className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-muted"
+            >
               {filteredRooms.length} ruangan
             </span>
           )}
         </div>
 
         {loading ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-12 text-center">
-            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" />
-            <p className="mt-4 text-sm text-slate-500">
+          <div
+            role="status"
+            className="rounded-3xl border border-slate-200 bg-white p-12 text-center"
+          >
+            <div
+              aria-hidden="true"
+              className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-100 border-t-primary"
+            />
+
+            <p className="mt-4 text-sm text-muted">
               Mengambil data ruangan...
             </p>
           </div>
-        ) : error ? null : filteredRooms.length === 0 ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-12 text-center">
-            <h3 className="font-semibold text-slate-800">
-              Ruangan tidak ditemukan
+        ) : error ? (
+          <p className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-sm text-muted">
+            Data belum dapat dimuat. Silakan tekan Muat Ulang.
+          </p>
+        ) : filteredRooms.length === 0 ? (
+          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 text-primary">
+              <BuildingIcon className="h-7 w-7" />
+            </span>
+
+            <h3 className="mt-4 text-sm font-bold text-primary">
+              {hasFilter
+                ? "Ruangan tidak ditemukan"
+                : "Belum ada ruangan aktif"}
             </h3>
 
-            <p className="mt-1 text-sm text-slate-500">
-              Coba gunakan kata kunci atau filter yang berbeda.
+            <p className="mt-2 text-xs leading-6 text-muted">
+              {hasFilter
+                ? "Coba kata kunci atau jenis ruangan yang berbeda."
+                : "Ruangan aktif yang ditambahkan Admin akan muncul di sini."}
             </p>
 
-            <button
-              onClick={() => {
-                setSearch("");
-                setFilter("semua");
-              }}
-              className="mt-4 text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-4 hover:decoration-slate-800"
-            >
-              Tampilkan semua ruangan
-            </button>
+            {hasFilter && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="btn-outline mt-5 rounded-xl text-xs"
+              >
+                Tampilkan Semua
+              </button>
+            )}
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-5 md:grid-cols-2">
             {filteredRooms.map((room) => (
               <article
                 key={room.id}
-                className="group flex flex-col rounded-xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm"
+                className="group flex min-w-0 flex-col overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/20 transition hover:border-secondary/40 hover:shadow-md hover:shadow-slate-200/40"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${
-                      room.room_type === "kelas"
-                        ? "bg-blue-50 text-blue-700"
-                        : "bg-violet-50 text-violet-700"
-                    }`}
-                  >
-                    {room.room_type === "kelas"
-                      ? "Ruang Kelas"
-                      : "Laboratorium"}
-                  </span>
-                </div>
+                <div className="relative overflow-hidden bg-[#173A56] px-5 py-5 sm:px-6">
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -right-8 -top-12 h-40 w-40 rounded-full border border-white/10"
+                  />
 
-                <div className="mt-4">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                    {room.room_code}
-                  </p>
+                  <div className="relative flex items-center justify-between gap-3">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-cyan-100">
+                      <BuildingIcon className="h-6 w-6" />
+                    </span>
 
-                  <h3 className="mt-1 text-lg font-bold text-slate-900">
-                    {room.room_name}
-                  </h3>
-
-                  <p className="mt-2 text-sm text-slate-500">
-                    {[room.building, room.floor, room.location]
-                      .filter(Boolean)
-                      .join(" - ") || "Lokasi belum diisi"}
-                  </p>
-                </div>
-
-                <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
-                  <div>
-                    <p className="text-xs text-slate-400">
-                      Kapasitas
-                    </p>
-
-                    <p className="mt-1 font-semibold text-slate-800">
-                      {room.capacity} orang
-                    </p>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-[10px] font-semibold text-emerald-100">
+                      <span
+                        aria-hidden="true"
+                        className="h-1.5 w-1.5 rounded-full bg-emerald-300"
+                      />
+                      Ruangan Aktif
+                    </span>
                   </div>
 
-                  <span className="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700">
-                    Ruangan Aktif
-                  </span>
+                  <p className="relative mt-4 text-[10px] font-semibold uppercase tracking-[0.15em] text-cyan-100/80">
+                    {typeLabel(room.room_type)}
+                  </p>
+
+                  <h3 className="relative mt-2 break-words font-heading text-xl font-extrabold text-white">
+                    {room.room_name}
+                  </h3>
                 </div>
 
-                {room.facilities.length > 0 && (
-                  <div className="mt-4">
-                    <p className="mb-2 text-xs font-medium text-slate-500">
+                <div className="flex flex-1 flex-col p-5 sm:p-6">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="rounded-lg bg-slate-100 px-3 py-1.5 text-[11px] font-bold tracking-wide text-primary">
+                      {room.room_code}
+                    </span>
+
+                    <span className="text-xs font-semibold text-muted">
+                      {room.capacity} orang
+                    </span>
+                  </div>
+
+                  <p className="mt-4 text-xs leading-7 text-muted">
+                    {locationLabel(room)}
+                  </p>
+
+                  <div className="mb-5 mt-5 border-t border-slate-100 pt-4">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted">
                       Fasilitas
                     </p>
 
-                    <div className="flex flex-wrap gap-1.5">
-                      {room.facilities.slice(0, 3).map((facility, index) => (
-                        <span
-                          key={`${facility}-${index}`}
-                          className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-600"
-                        >
-                          {facility}
-                        </span>
-                      ))}
+                    {room.facilities.length > 0 ? (
+                      <ul className="mt-3 flex flex-wrap gap-2">
+                        {room.facilities
+                          .slice(0, 4)
+                          .map((facility, index) => (
+                            <li
+                              key={`${facility}-${index}`}
+                              className="max-w-full break-words rounded-lg border border-slate-200 px-2.5 py-1.5 text-[10px] font-medium text-primary"
+                            >
+                              {facility}
+                            </li>
+                          ))}
 
-                      {room.facilities.length > 3 && (
-                        <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-500">
-                          +{room.facilities.length - 3} lainnya
-                        </span>
-                      )}
-                    </div>
+                        {room.facilities.length > 4 && (
+                          <li className="rounded-lg bg-slate-50 px-2.5 py-1.5 text-[10px] text-muted">
+                            +{room.facilities.length - 4} lainnya
+                          </li>
+                        )}
+                      </ul>
+                    ) : (
+                      <p className="mt-3 text-xs text-muted">
+                        Informasi fasilitas belum tersedia.
+                      </p>
+                    )}
                   </div>
-                )}
 
-                <button
-                  onClick={() => setSelectedRoom(room)}
-                  className="mt-5 w-full rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-slate-900 hover:bg-slate-900 hover:text-white"
-                >
-                  Lihat Detail Ruangan
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRoom(room)}
+                    aria-haspopup="dialog"
+                    aria-label={`Lihat detail ${room.room_name}`}
+                    className="mt-auto inline-flex min-h-11 items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3 text-xs font-bold text-primary transition hover:bg-primary hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                  >
+                    Lihat Detail Ruangan
+                    <span aria-hidden="true">→</span>
+                  </button>
+                </div>
               </article>
             ))}
           </div>
         )}
       </section>
 
-      {/* Room Detail Modal */}
-      {selectedRoom && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
-          <button
-            aria-label="Tutup detail ruangan"
-            onClick={() => setSelectedRoom(null)}
-            className="fixed inset-0 bg-black/50"
-          />
-
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="room-detail-title"
-            className="relative z-10 my-auto w-full max-w-xl overflow-hidden rounded-2xl bg-white shadow-2xl"
-          >
-            <div className="border-b border-slate-100 p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <span
-                    className={`rounded-full px-3 py-1 text-xs font-medium ${
-                      selectedRoom.room_type === "kelas"
-                        ? "bg-blue-50 text-blue-700"
-                        : "bg-violet-50 text-violet-700"
-                    }`}
-                  >
-                    {selectedRoom.room_type === "kelas"
-                      ? "Ruang Kelas"
-                      : "Laboratorium"}
-                  </span>
-
-                  <h2
-                    id="room-detail-title"
-                    className="mt-3 text-xl font-bold text-slate-900"
-                  >
-                    {selectedRoom.room_name}
-                  </h2>
-
-                  <p className="mt-1 text-sm text-slate-500">
-                    {selectedRoom.room_code}
-                  </p>
-                </div>
-
-                <button
-                  onClick={() => setSelectedRoom(null)}
-                  aria-label="Tutup"
-                  className="shrink-0 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
-                >
-                  Tutup
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-6 p-6">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-slate-50 p-4">
-                  <p className="text-xs text-slate-500">Kapasitas</p>
-                  <p className="mt-1 text-lg font-bold text-slate-900">
-                    {selectedRoom.capacity} orang
-                  </p>
-                </div>
-
-                <div className="rounded-xl bg-slate-50 p-4">
-                  <p className="text-xs text-slate-500">Status Data</p>
-                  <p className="mt-1 text-lg font-bold text-green-700">
-                    Aktif
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900">
-                  Lokasi Ruangan
-                </h3>
-
-                <div className="mt-3 space-y-2 text-sm text-slate-600">
-                  <p>
-                    <span className="text-slate-400">Gedung:</span>{" "}
-                    {selectedRoom.building || "-"}
-                  </p>
-
-                  <p>
-                    <span className="text-slate-400">Lantai:</span>{" "}
-                    {selectedRoom.floor || "-"}
-                  </p>
-
-                  <p>
-                    <span className="text-slate-400">Lokasi:</span>{" "}
-                    {selectedRoom.location || "-"}
-                  </p>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900">
-                  Fasilitas Ruangan
-                </h3>
-
-                {selectedRoom.facilities.length > 0 ? (
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    {selectedRoom.facilities.map((facility, index) => (
-                      <div
-                        key={`${facility}-${index}`}
-                        className="flex items-center gap-2 rounded-lg border border-slate-100 p-3 text-sm text-slate-700"
-                      >
-                        {facility}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="mt-2 text-sm text-slate-400">
-                    Belum ada informasi fasilitas.
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900">
-                  Deskripsi
-                </h3>
-
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                  {selectedRoom.description ||
-                    "Belum ada deskripsi tambahan untuk ruangan ini."}
-                </p>
-              </div>
-            </div>
-
-            <div className="border-t border-slate-100 bg-slate-50 p-4">
-              <button
-                onClick={() => setSelectedRoom(null)}
-                className="w-full rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700"
-              >
-                Tutup Detail
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <RoomDetail
+        room={selectedRoom}
+        onClose={() => setSelectedRoom(null)}
+      />
     </div>
   );
 }

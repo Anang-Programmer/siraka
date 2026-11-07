@@ -1,7 +1,12 @@
-
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { createClient } from "@/lib/supabase/client";
 import { getErrorMessage } from "@/lib/errors";
 import { useCurrentTime } from "@/lib/hooks/use-current-time";
@@ -28,40 +33,101 @@ type ClassBooking = {
   id: string;
   room_id: string;
   title: string;
-  purpose: string | null;
-  activity_type: string | null;
   starts_at: string;
   ends_at: string;
 };
 
-type RoomFilter = "semua" | "kelas" | "laboratorium";
-type AvailabilityFilter =
-  | "semua"
+type RoomFilter = "semua" | Room["room_type"];
+
+type Status =
   | "tersedia"
   | "ada_jadwal"
   | "sedang_digunakan";
 
-function getTodayWIB(now: number) {
+type StatusFilter = "semua" | Status;
+
+const roomOptions: { value: RoomFilter; label: string }[] = [
+  { value: "semua", label: "Semua" },
+  { value: "kelas", label: "Ruang Kelas" },
+  { value: "laboratorium", label: "Laboratorium" },
+];
+
+const statusOptions: { value: StatusFilter; label: string }[] = [
+  { value: "semua", label: "Semua Status" },
+  { value: "tersedia", label: "Tersedia" },
+  { value: "ada_jadwal", label: "Ada Jadwal" },
+  { value: "sedang_digunakan", label: "Sedang Digunakan" },
+];
+
+const statusConfig: Record<
+  Status,
+  { label: string; badge: string; dot: string }
+> = {
+  tersedia: {
+    label: "Tersedia",
+    badge: "bg-emerald-50 text-emerald-700",
+    dot: "bg-emerald-500",
+  },
+  ada_jadwal: {
+    label: "Ada Jadwal",
+    badge: "bg-amber-50 text-amber-800",
+    dot: "bg-amber-500",
+  },
+  sedang_digunakan: {
+    label: "Sedang Digunakan",
+    badge: "bg-red-50 text-red-700",
+    dot: "bg-red-500",
+  },
+};
+
+function CalendarIcon({
+  className = "h-5 w-5",
+}: {
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      <rect x="3" y="5" width="18" height="16" rx="3" />
+      <path d="M7 3v4M17 3v4M3 11h18M8 15h2M14 15h2" />
+    </svg>
+  );
+}
+
+function jakartaDate(timestamp: number) {
   const parts = new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Jakarta",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).formatToParts(new Date(now));
+  }).formatToParts(new Date(timestamp));
 
-  const year = parts.find((part) => part.type === "year")?.value;
-  const month = parts.find((part) => part.type === "month")?.value;
-  const day = parts.find((part) => part.type === "day")?.value;
-
-  return `${year}-${month}-${day}`;
+  return ["year", "month", "day"]
+    .map((type) => parts.find((part) => part.type === type)?.value)
+    .join("-");
 }
 
-function getDayBounds(date: string) {
+function dayBounds(date: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null;
-  const start = new Date(`${date}T00:00:00+07:00`);
-  if (!Number.isFinite(start.getTime()) || getTodayWIB(start.getTime()) !== date) return null;
-  const end = new Date(start);
 
+  const start = new Date(`${date}T00:00:00+07:00`);
+
+  if (
+    !Number.isFinite(start.getTime()) ||
+    jakartaDate(start.getTime()) !== date
+  ) {
+    return null;
+  }
+
+  const end = new Date(start);
   end.setUTCDate(end.getUTCDate() + 1);
 
   return {
@@ -70,7 +136,19 @@ function getDayBounds(date: string) {
   };
 }
 
-function formatTime(value: string) {
+function dateLabel(date: string) {
+  if (!dayBounds(date)) return "Pilih tanggal yang valid";
+
+  return new Intl.DateTimeFormat("id-ID", {
+    timeZone: "Asia/Jakarta",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(`${date}T12:00:00+07:00`));
+}
+
+function timeLabel(value: string) {
   return new Intl.DateTimeFormat("id-ID", {
     timeZone: "Asia/Jakarta",
     hour: "2-digit",
@@ -79,69 +157,104 @@ function formatTime(value: string) {
   }).format(new Date(value));
 }
 
-function formatDate(value: string) {
-  if (!getDayBounds(value)) return "Pilih tanggal yang valid.";
-  return new Intl.DateTimeFormat("id-ID", {
-    timeZone: "Asia/Jakarta",
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(new Date(`${value}T12:00:00+07:00`));
+function timeRange(item: Occupancy, date: string) {
+  const start =
+    jakartaDate(Date.parse(item.starts_at)) === date
+      ? timeLabel(item.starts_at)
+      : "00.00";
+
+  const end =
+    jakartaDate(Date.parse(item.ends_at)) === date
+      ? timeLabel(item.ends_at)
+      : "24.00";
+
+  return `${start} - ${end} WIB`;
 }
 
-function getRoomOccupancies(occupancies: Occupancy[], roomId: string) {
-  return occupancies
-    .filter((item) => item.room_id === roomId)
-    .sort((a, b) => Date.parse(a.starts_at) - Date.parse(b.starts_at));
+function roomStatus(
+  schedules: Occupancy[],
+  isToday: boolean,
+  now: number | null,
+): Status {
+  if (
+    isToday &&
+    now !== null &&
+    schedules.some(
+      (item) =>
+        now >= Date.parse(item.starts_at) &&
+        now < Date.parse(item.ends_at),
+    )
+  ) {
+    return "sedang_digunakan";
+  }
+
+  return schedules.length > 0 ? "ada_jadwal" : "tersedia";
 }
 
-function getRoomStatus(schedules: Occupancy[], isToday: boolean, now: number | null) {
-  const currentlyUsed = isToday && now !== null && schedules.some(
-    (item) => now >= Date.parse(item.starts_at) && now < Date.parse(item.ends_at)
-  );
-  if (currentlyUsed) return "sedang_digunakan" as const;
-  if (schedules.length > 0) return "ada_jadwal" as const;
-  return "tersedia" as const;
+function filterClass(active: boolean) {
+  return `min-h-10 rounded-xl px-3 py-2 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+    active
+      ? "bg-white text-primary shadow-sm"
+      : "text-muted hover:bg-white/70 hover:text-primary"
+  }`;
 }
 
 export default function MahasiswaSchedulePage() {
   const now = useCurrentTime();
-  const loadController = useRef<AbortController | null>(null);
+  const controllerRef = useRef<AbortController | null>(null);
+
   const [rooms, setRooms] = useState<Room[]>([]);
   const [occupancies, setOccupancies] = useState<Occupancy[]>([]);
-  const [classBookings, setClassBookings] = useState<ClassBooking[]>([]);
+  const [classBookings, setClassBookings] =
+    useState<ClassBooking[]>([]);
 
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [roomFilter, setRoomFilter] = useState<RoomFilter>("semua");
-  const [availabilityFilter, setAvailabilityFilter] =
-    useState<AvailabilityFilter>("semua");
+  const [selectedDate, setSelectedDate] = useState<string | null>(
+    null,
+  );
+  const [loadedDate, setLoadedDate] = useState("");
+
   const [search, setSearch] = useState("");
+  const [roomFilter, setRoomFilter] =
+    useState<RoomFilter>("semua");
+  const [statusFilter, setStatusFilter] =
+    useState<StatusFilter>("semua");
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [warning, setWarning] = useState("");
 
-  const today = now === null ? "" : getTodayWIB(now);
+  const today = now === null ? "" : jakartaDate(now);
   const date = selectedDate ?? today;
-  const validDate = getDayBounds(date) !== null;
+  const validDate = dayBounds(date) !== null;
 
-  const loadSchedule = useCallback(() => {
-    loadController.current?.abort();
+  const loadSchedule = useCallback(async () => {
+    controllerRef.current?.abort();
+
     const controller = new AbortController();
-    loadController.current = controller;
-    const { signal } = controller;
-    const request = async () => {
-      if (!date) return;
-      const bounds = getDayBounds(date);
-      if (!bounds) throw new Error("Pilih tanggal yang valid.");
-      const supabase = createClient();
-      const { start, end } = bounds;
+    controllerRef.current = controller;
 
-      const [roomResult, occupancyResult, bookingResult] = await Promise.all([
+    const { signal } = controller;
+
+    setError("");
+    setWarning("");
+
+    const bounds = dayBounds(date);
+
+    if (!bounds) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const supabase = createClient();
+
+      const [roomResult, occupancyResult] = await Promise.all([
         supabase
           .from("rooms")
           .select(
-            "id, room_code, room_name, room_type, building, floor, location, capacity, facilities"
+            "id, room_code, room_name, room_type, building, floor, location, capacity, facilities",
           )
           .eq("is_active", true)
           .order("room_code", { ascending: true }),
@@ -149,57 +262,147 @@ export default function MahasiswaSchedulePage() {
         supabase
           .from("room_occupancy")
           .select("room_id, starts_at, ends_at")
-          .lt("starts_at", end)
-          .gt("ends_at", start)
-          .order("starts_at", { ascending: true }),
-
-        supabase
-          .from("bookings")
-          .select(
-            "id, room_id, title, purpose, activity_type, starts_at, ends_at"
-          )
-          .eq("status", "approved")
-          .lt("starts_at", end)
-          .gt("ends_at", start)
+          .lt("starts_at", bounds.end)
+          .gt("ends_at", bounds.start)
           .order("starts_at", { ascending: true }),
       ]);
 
-      if (signal?.aborted) return;
+      if (signal.aborted) return;
       if (roomResult.error) throw roomResult.error;
       if (occupancyResult.error) throw occupancyResult.error;
 
-      setError("");
-      setRooms((roomResult.data ?? []) as Room[]);
-      setOccupancies((occupancyResult.data ?? []) as Occupancy[]);
-      setClassBookings((bookingResult.data ?? []) as ClassBooking[]);
-    };
-    return request().catch((err: unknown) => {
-      if (signal?.aborted) return;
-      console.error("Load room schedule:", err);
-      setError(getErrorMessage(err, "Gagal mengambil jadwal dan ketersediaan ruangan."));
-    }).finally(() => {
-      if (!signal?.aborted) setLoading(false);
-    });
+      let nextBookings: ClassBooking[] = [];
+      let nextWarning = "";
+
+      try {
+        const {
+          data: { user },
+          error: authError,
+        } = await supabase.auth.getUser();
+
+        if (signal.aborted) return;
+        if (authError) throw authError;
+
+        if (!user) {
+          throw new Error("Sesi login tidak ditemukan.");
+        }
+
+        const { data: profile, error: profileError } =
+          await supabase
+            .from("profiles")
+            .select("class_id")
+            .eq("id", user.id)
+            .maybeSingle();
+
+        if (signal.aborted) return;
+        if (profileError) throw profileError;
+
+        if (!profile) {
+          throw new Error("Profil tidak ditemukan.");
+        }
+
+        if (profile.class_id) {
+          const { data, error: bookingError } = await supabase
+            .from("bookings")
+            .select("id, room_id, title, starts_at, ends_at")
+            .eq("class_id", profile.class_id)
+            .eq("status", "approved")
+            .lt("starts_at", bounds.end)
+            .gt("ends_at", bounds.start)
+            .order("starts_at", { ascending: true });
+
+          if (signal.aborted) return;
+          if (bookingError) throw bookingError;
+
+          nextBookings = (data ?? []) as ClassBooking[];
+        }
+      } catch (err) {
+        if (signal.aborted) return;
+
+        console.error("Load class schedule:", err);
+
+        nextWarning =
+          "Detail kegiatan kelas belum dapat dimuat. Data ketersediaan ruangan tetap tersedia.";
+      }
+
+      if (signal.aborted) return;
+
+      setRooms(
+        ((roomResult.data ?? []) as Room[]).map((room) => ({
+          ...room,
+          facilities: Array.isArray(room.facilities)
+            ? room.facilities
+            : [],
+        })),
+      );
+
+      setOccupancies(
+        (occupancyResult.data ?? []) as Occupancy[],
+      );
+      setClassBookings(nextBookings);
+      setWarning(nextWarning);
+      setLoadedDate(date);
+    } catch (err) {
+      if (signal.aborted) return;
+
+      console.error("Load schedule:", err);
+
+      setError(
+        getErrorMessage(
+          err,
+          "Gagal memuat jadwal dan ketersediaan ruangan.",
+        ),
+      );
+    } finally {
+      if (!signal.aborted) setLoading(false);
+    }
   }, [date]);
 
   useEffect(() => {
     void loadSchedule();
-    return () => loadController.current?.abort();
+
+    return () => {
+      controllerRef.current?.abort();
+    };
   }, [loadSchedule]);
 
-  const roomSchedules = useMemo(() => (validDate ? rooms : []).map((room) => {
-    const schedules = getRoomOccupancies(occupancies, room.id);
-    return { room, schedules, status: getRoomStatus(schedules, date === today, now) };
-  }), [rooms, occupancies, validDate, date, today, now]);
+  const ready =
+    validDate &&
+    loadedDate === date &&
+    !loading &&
+    !error;
+
+  const roomSchedules = useMemo(() => {
+    if (!ready) return [];
+
+    return rooms.map((room) => {
+      const schedules = occupancies
+        .filter((item) => item.room_id === room.id)
+        .sort(
+          (a, b) =>
+            Date.parse(a.starts_at) - Date.parse(b.starts_at),
+        );
+
+      return {
+        room,
+        schedules,
+        status: roomStatus(schedules, date === today, now),
+      };
+    });
+  }, [rooms, occupancies, ready, date, today, now]);
 
   const filteredRooms = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
+    const keyword = search.trim().toLocaleLowerCase("id");
 
     return roomSchedules.filter(({ room, status }) => {
       const matchesType =
-        roomFilter === "semua" || room.room_type === roomFilter;
+        roomFilter === "semua" ||
+        room.room_type === roomFilter;
 
-      const searchable = [
+      const matchesStatus =
+        statusFilter === "semua" || status === statusFilter;
+
+      const text = [
         room.room_code,
         room.room_name,
         room.building,
@@ -209,559 +412,623 @@ export default function MahasiswaSchedulePage() {
       ]
         .filter(Boolean)
         .join(" ")
-        .toLowerCase();
+        .toLocaleLowerCase("id");
 
-      const matchesSearch =
-        !keyword || searchable.includes(keyword);
-
-
-      const matchesAvailability =
-        availabilityFilter === "semua" ||
-        status === availabilityFilter;
-
-      return matchesType && matchesSearch && matchesAvailability;
+      return (
+        matchesType &&
+        matchesStatus &&
+        (!keyword || text.includes(keyword))
+      );
     });
-  }, [
-    roomSchedules,
-    search,
-    roomFilter,
-    availabilityFilter,
-  ]);
+  }, [roomSchedules, search, roomFilter, statusFilter]);
 
-  const summary = useMemo(() => {
-    let available = 0;
-    let scheduled = 0;
-    let currentlyUsed = 0;
+  const stats = [
+    {
+      label: "Total Ruangan",
+      value: roomSchedules.length,
+      note: "Ruangan aktif dalam sistem",
+      color: "bg-slate-100 text-primary",
+    },
+    {
+      label: "Tersedia",
+      value: roomSchedules.filter(
+        (item) => item.status === "tersedia",
+      ).length,
+      note: "Tanpa reservasi pada tanggal ini",
+      color: "bg-emerald-50 text-emerald-700",
+    },
+    {
+      label: "Ada Jadwal",
+      value: roomSchedules.filter(
+        (item) => item.status === "ada_jadwal",
+      ).length,
+      note: "Memiliki reservasi pada tanggal ini",
+      color: "bg-amber-50 text-amber-800",
+    },
+    {
+      label: "Sedang Digunakan",
+      value: roomSchedules.filter(
+        (item) => item.status === "sedang_digunakan",
+      ).length,
+      note: "Reservasi berlangsung saat ini",
+      color: "bg-red-50 text-red-700",
+    },
+  ];
 
-    for (const { status } of roomSchedules) {
+  const hasFilter =
+    search.trim() !== "" ||
+    roomFilter !== "semua" ||
+    statusFilter !== "semua";
 
-      if (status === "tersedia") available++;
-      if (status === "ada_jadwal") scheduled++;
-      if (status === "sedang_digunakan") currentlyUsed++;
-    }
+  function resetFilters() {
+    setSearch("");
+    setRoomFilter("semua");
+    setStatusFilter("semua");
+  }
 
-    return {
-      total: roomSchedules.length,
-      available,
-      scheduled,
-      currentlyUsed,
-    };
-  }, [roomSchedules]);
-
-  function statusInfo(status: string) {
-    switch (status) {
-      case "sedang_digunakan":
-        return {
-          label: "Sedang Digunakan",
-          className: "bg-red-50 text-red-700 border-red-100",
-          dot: "bg-red-500",
-        };
-
-      case "ada_jadwal":
-        return {
-          label: "Ada Jadwal",
-          className: "bg-amber-50 text-amber-700 border-amber-100",
-          dot: "bg-amber-500",
-        };
-
-      default:
-        return {
-          label: "Tersedia",
-          className: "bg-green-50 text-green-700 border-green-100",
-          dot: "bg-green-500",
-        };
-    }
+  function changeDate(value: string | null) {
+    controllerRef.current?.abort();
+    setSelectedDate(value);
+    setLoading(true);
+    setError("");
+    setWarning("");
   }
 
   return (
-    <div className="space-y-7 pb-10">
-      {/* Header */}
-      <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+    <div className="space-y-7">
+      <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-sm font-medium text-slate-500">
-            Informasi Penggunaan Ruangan
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+            Workspace / Jadwal Ruangan
           </p>
 
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-            Jadwal & Ketersediaan
+          <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
+            Jadwal &amp; Ketersediaan
           </h1>
 
-          <p className="mt-2 text-sm text-slate-500">
-            Periksa ruangan yang tersedia dan waktu penggunaannya.
+          <p className="mt-2 text-sm leading-7 text-muted">
+            Temukan waktu dan ruangan yang sesuai untuk kegiatanmu.
           </p>
         </div>
 
         <button
-          onClick={() => {
-            setLoading(true);
-            setError("");
-            void loadSchedule();
-          }}
+          type="button"
+          onClick={() => void loadSchedule()}
           disabled={loading || !validDate}
-          className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 disabled:opacity-50"
+          className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
         >
-          {loading ? "Memuat..." : "Muat Ulang"}
+          {loading ? "Memuat..." : "↻ Muat Ulang"}
         </button>
       </section>
 
-      {/* Date selector */}
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="flex-1">
-            <label
-              htmlFor="schedule-date"
-              className="mb-2 block text-sm font-semibold text-slate-700"
-            >
-              Pilih Tanggal
-            </label>
+      <section className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/30 sm:p-6">
+        <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
+          <div className="flex items-center gap-4">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-primary">
+              <CalendarIcon className="h-6 w-6" />
+            </span>
 
+            <div>
+              <label
+                htmlFor="schedule-date"
+                className="text-[10px] font-bold uppercase tracking-widest text-muted"
+              >
+                Tanggal Pemantauan
+              </label>
+
+              <p className="mt-1 text-sm font-bold text-primary">
+                {today ? dateLabel(date) : "Memuat tanggal..."}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
             <input
               id="schedule-date"
               type="date"
               min={today || undefined}
               value={date}
-              onChange={(event) => {
-                setSelectedDate(event.target.value);
-                setLoading(true);
-                setError("");
-              }}
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-slate-500 focus:bg-white sm:max-w-xs"
+              onChange={(event) =>
+                changeDate(event.target.value)
+              }
+              className="input-field min-h-11 w-auto max-w-full rounded-xl"
             />
 
-            <p className="mt-2 text-sm text-slate-500">
-              {formatDate(date)}
-            </p>
+            <button
+              type="button"
+              onClick={() => changeDate(null)}
+              disabled={!today || date === today}
+              className="btn-outline rounded-xl text-xs"
+            >
+              Hari Ini
+            </button>
           </div>
-
-          <button
-            onClick={() => {
-              setSelectedDate(today);
-              setLoading(true);
-              setError("");
-            }}
-            disabled={!today || date === today}
-            className="rounded-lg bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300"
-          >
-            Hari Ini
-          </button>
         </div>
       </section>
 
-      {/* Error */}
       {error && (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-          <p className="font-semibold">Gagal memuat data</p>
-          <p className="mt-1">{error}</p>
-        </div>
+        <p
+          role="alert"
+          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700"
+        >
+          {error}
+        </p>
       )}
 
-      {/* Summary */}
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <p className="text-sm text-slate-500">Total Ruangan</p>
-          <p className="mt-2 text-3xl font-bold text-slate-900">
-            {loading ? "..." : summary.total}
-          </p>
-        </div>
+      {ready && warning && (
+        <p
+          role="status"
+          className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-6 text-amber-800"
+        >
+          {warning}
+        </p>
+      )}
 
-        <div className="rounded-xl border border-green-100 bg-white p-5">
-          <p className="text-sm text-slate-500">Tersedia</p>
-          <p className="mt-2 text-3xl font-bold text-green-700">
-            {loading ? "..." : summary.available}
-          </p>
-        </div>
+      <section
+        aria-label="Ringkasan ketersediaan"
+        className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      >
+        {stats.map((stat) => (
+          <div
+            key={stat.label}
+            className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-xs font-semibold text-muted">
+                {stat.label}
+              </h2>
 
-        <div className="rounded-xl border border-amber-100 bg-white p-5">
-          <p className="text-sm text-slate-500">Ada Jadwal</p>
-          <p className="mt-2 text-3xl font-bold text-amber-600">
-            {loading ? "..." : summary.scheduled}
-          </p>
-        </div>
+              <span className={`rounded-xl p-2 ${stat.color}`}>
+                <CalendarIcon className="h-4 w-4" />
+              </span>
+            </div>
 
-        <div className="rounded-xl border border-red-100 bg-white p-5">
-          <p className="text-sm text-slate-500">Sedang Digunakan</p>
-          <p className="mt-2 text-3xl font-bold text-red-600">
-            {loading ? "..." : summary.currentlyUsed}
-          </p>
-        </div>
+            <p className="mt-4 font-heading text-4xl font-extrabold text-primary">
+              {ready ? stat.value : "—"}
+            </p>
+
+            <p className="mt-2 text-[10px] leading-5 text-muted">
+              {stat.note}
+            </p>
+          </div>
+        ))}
       </section>
 
-      {/* Filters */}
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
-        <div className="grid gap-5 lg:grid-cols-2">
-          <div>
-            <label
-              htmlFor="room-search"
-              className="mb-2 block text-sm font-semibold text-slate-700"
+      <section className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 sm:p-6">
+        <div>
+          <label
+            htmlFor="schedule-search"
+            className="mb-3 block text-xs font-bold text-primary"
+          >
+            Cari ruangan
+          </label>
+
+          <div className="relative">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              aria-hidden="true"
+              className="pointer-events-none absolute left-4 top-3.5 h-4 w-4 text-muted"
             >
-              Cari Ruangan
-            </label>
+              <circle cx="10.5" cy="10.5" r="6.5" />
+              <path d="m16 16 5 5" />
+            </svg>
 
             <input
-              id="room-search"
+              id="schedule-search"
               type="search"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Kode, nama, gedung, atau lokasi..."
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-slate-500 focus:bg-white"
+              placeholder="Cari kode, nama, gedung, atau fasilitas..."
+              className="input-field min-h-11 rounded-xl pl-11"
             />
           </div>
+        </div>
 
-          <div>
-            <p className="mb-2 text-sm font-semibold text-slate-700">
-              Jenis Ruangan
-            </p>
+        <div className="grid gap-5 xl:grid-cols-2">
+          <fieldset className="min-w-0">
+            <legend className="mb-3 text-xs font-bold text-primary">
+              Jenis ruangan
+            </legend>
 
-            <div className="flex flex-wrap gap-2">
-              {(
-                [
-                  ["semua", "Semua"],
-                  ["kelas", "Ruang Kelas"],
-                  ["laboratorium", "Laboratorium"],
-                ] as [RoomFilter, string][]
-              ).map(([value, label]) => (
+            <div className="flex w-fit max-w-full flex-wrap gap-1 rounded-2xl bg-slate-100 p-1">
+              {roomOptions.map((item) => (
                 <button
-                  key={value}
-                  onClick={() => setRoomFilter(value)}
-                  className={`rounded-lg px-4 py-2.5 text-sm font-medium transition ${
-                    roomFilter === value
-                      ? "bg-slate-900 text-white"
-                      : "border border-slate-200 text-slate-600 hover:bg-slate-50"
-                  }`}
+                  key={item.value}
+                  type="button"
+                  onClick={() => setRoomFilter(item.value)}
+                  aria-pressed={roomFilter === item.value}
+                  className={filterClass(
+                    roomFilter === item.value,
+                  )}
                 >
-                  {label}
+                  {item.label}
                 </button>
               ))}
             </div>
-          </div>
+          </fieldset>
+
+          <fieldset className="min-w-0">
+            <legend className="mb-3 text-xs font-bold text-primary">
+              Status ketersediaan
+            </legend>
+
+            <div className="flex w-fit max-w-full flex-wrap gap-1 rounded-2xl bg-slate-100 p-1">
+              {statusOptions.map((item) => (
+                <button
+                  key={item.value}
+                  type="button"
+                  onClick={() => setStatusFilter(item.value)}
+                  aria-pressed={statusFilter === item.value}
+                  className={filterClass(
+                    statusFilter === item.value,
+                  )}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </fieldset>
         </div>
 
-        <div className="mt-5 border-t border-slate-100 pt-4">
-          <p className="mb-2 text-sm font-semibold text-slate-700">
-            Status Ketersediaan
-          </p>
+        {hasFilter && (
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
+            <p className="text-xs text-muted">
+              {ready
+                ? `${filteredRooms.length} ruangan sesuai filter`
+                : "Hasil belum tersedia"}
+            </p>
 
-          <div className="flex flex-wrap gap-2">
-            {(
-              [
-                ["semua", "Semua Status"],
-                ["tersedia", "Tersedia"],
-                ["ada_jadwal", "Ada Jadwal"],
-                ["sedang_digunakan", "Sedang Digunakan"],
-              ] as [AvailabilityFilter, string][]
-            ).map(([value, label]) => (
-              <button
-                key={value}
-                onClick={() => setAvailabilityFilter(value)}
-                className={`rounded-lg px-4 py-2.5 text-sm font-medium transition ${
-                  availabilityFilter === value
-                    ? "bg-slate-900 text-white"
-                    : "border border-slate-200 text-slate-600 hover:bg-slate-50"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="rounded-md text-xs font-bold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              Reset filter
+            </button>
           </div>
-        </div>
+        )}
       </section>
 
-      {/* Jadwal Kelas Mahasiswa pada tanggal ini */}
-      {validDate && !loading && classBookings.length > 0 && (
-        <section className="overflow-hidden rounded-xl border border-blue-200 bg-blue-50/60 p-5">
-          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600 text-xs font-bold text-white">
-                  ✓
-                </span>
-                <h2 className="text-base font-bold text-blue-950">
-                  Jadwal Kelas Anda ({formatDate(date)})
-                </h2>
-              </div>
-              <p className="mt-1 text-xs text-blue-700">
-                Ada {classBookings.length} kegiatan kelas yang telah disetujui Admin untuk tanggal ini.
-              </p>
-            </div>
-            <span className="w-fit rounded-full bg-blue-600 px-3 py-1 text-xs font-semibold text-white">
-              Disetujui Admin
-            </span>
+      {ready && classBookings.length > 0 && (
+        <section className="rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-6">
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="h-6 w-1 rounded-full bg-secondary"
+            />
+            <h2 className="font-heading text-base font-extrabold text-primary">
+              Jadwal Kelas Anda
+            </h2>
           </div>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {classBookings.map((booking) => {
-              const room = rooms.find((r) => r.id === booking.room_id);
-              return (
-                <div
-                  key={booking.id}
-                  className="flex flex-col justify-between rounded-lg border border-blue-200 bg-white p-4 shadow-xs"
-                >
-                  <div>
-                    <h3 className="font-bold text-slate-900">{booking.title}</h3>
-                    <p className="mt-1 text-xs text-slate-500">
-                      {booking.activity_type ?? booking.purpose ?? "Kegiatan kelas"}
-                    </p>
-                  </div>
+          <p className="mt-2 text-xs leading-6 text-muted">
+            Kegiatan kelas yang disetujui pada tanggal pilihanmu.
+          </p>
 
-                  <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-3 text-xs">
-                    <span className="font-semibold text-blue-800">
-                      {room ? `${room.room_code} - ${room.room_name}` : "Ruangan"}
-                    </span>
-                    <span className="font-bold tabular-nums text-slate-800">
-                      {formatTime(booking.starts_at)} - {formatTime(booking.ends_at)}
-                    </span>
-                  </div>
-                </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            {classBookings.map((booking) => {
+              const room = rooms.find(
+                (item) => item.id === booking.room_id,
+              );
+
+              return (
+                <article
+                  key={booking.id}
+                  className="rounded-2xl border border-slate-200 p-4"
+                >
+                  <h3 className="break-words text-sm font-bold text-primary">
+                    {booking.title}
+                  </h3>
+
+                  <p className="mt-2 text-xs leading-6 text-muted">
+                    {room
+                      ? `${room.room_code} · ${room.room_name}`
+                      : "Informasi ruangan tidak tersedia"}
+                  </p>
+
+                  <p className="mt-3 text-xs font-bold text-primary">
+                    {timeRange(booking, date)}
+                  </p>
+
+                  <span className="mt-3 inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">
+                    Disetujui Admin
+                  </span>
+                </article>
               );
             })}
           </div>
         </section>
       )}
 
-      {/* Room cards */}
-      <section className="space-y-4">
+      <section className="space-y-5">
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="h-6 w-1 rounded-full bg-secondary"
+            />
+
+            <h2 className="font-heading text-lg font-extrabold text-primary">
               Ketersediaan Ruangan
             </h2>
-
-            <p className="mt-1 text-sm text-slate-500">
-              {validDate ? `Jadwal pemakaian pada ${formatDate(date)}.` : "Pilih tanggal yang valid untuk melihat jadwal."}
-            </p>
           </div>
 
-          {!loading && (
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+          {ready && (
+            <span
+              role="status"
+              className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-muted"
+            >
               {filteredRooms.length} ruangan
             </span>
           )}
         </div>
 
-        {loading ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-12 text-center">
-            <div className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-slate-800" />
-            <p className="mt-4 text-sm text-slate-500">
+        {!today || loading ? (
+          <div
+            role="status"
+            className="rounded-3xl border border-slate-200 bg-white p-12 text-center"
+          >
+            <div
+              aria-hidden="true"
+              className="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-slate-100 border-t-primary"
+            />
+
+            <p className="mt-4 text-sm text-muted">
               Memuat ketersediaan ruangan...
             </p>
           </div>
         ) : !validDate ? (
-          <p className="rounded-xl border border-slate-200 bg-white p-12 text-center text-sm text-slate-500">
-            Pilih tanggal yang valid untuk melihat ketersediaan ruangan.
+          <p className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-sm text-muted">
+            Pilih tanggal yang valid untuk melihat jadwal.
           </p>
-        ) : error ? null : filteredRooms.length === 0 ? (
-          <div className="rounded-xl border border-slate-200 bg-white p-12 text-center">
-            <h3 className="font-semibold text-slate-800">
-              Tidak ada ruangan ditemukan
+        ) : error ? (
+          <p className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-sm text-muted">
+            Data belum dapat dimuat. Silakan tekan Muat Ulang.
+          </p>
+        ) : !ready ? (
+          <p role="status" className="text-sm text-muted">
+            Menyiapkan jadwal...
+          </p>
+        ) : filteredRooms.length === 0 ? (
+          <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center">
+            <h3 className="text-sm font-bold text-primary">
+              {hasFilter
+                ? "Ruangan tidak ditemukan"
+                : "Belum ada ruangan aktif"}
             </h3>
 
-            <p className="mt-1 text-sm text-slate-500">
-              Coba ubah kata kunci atau filter yang digunakan.
+            <p className="mt-2 text-xs leading-6 text-muted">
+              {hasFilter
+                ? "Coba ubah kata kunci atau filter yang digunakan."
+                : "Ruangan aktif yang ditambahkan Admin akan muncul di sini."}
             </p>
 
-            <button
-              onClick={() => {
-                setSearch("");
-                setRoomFilter("semua");
-                setAvailabilityFilter("semua");
-              }}
-              className="mt-4 text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-4 hover:decoration-slate-800"
-            >
-              Reset semua filter
-            </button>
+            {hasFilter && (
+              <button
+                type="button"
+                onClick={resetFilters}
+                className="btn-outline mt-5 rounded-xl text-xs"
+              >
+                Reset Filter
+              </button>
+            )}
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {filteredRooms.map(({ room, schedules, status }) => {
-              const info = statusInfo(status);
+          <div className="grid gap-5 md:grid-cols-2">
+            {filteredRooms.map(
+              ({ room, schedules, status }) => {
+                const info = statusConfig[status];
 
-              return (
-                <article
-                  key={room.id}
-                  className="rounded-xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                        {room.room_code}
-                      </p>
-
-                      <h3 className="mt-1 text-lg font-bold text-slate-900">
-                        {room.room_name}
-                      </h3>
-
-                      <p className="mt-1 text-sm text-slate-500">
+                return (
+                  <article
+                    key={room.id}
+                    className="min-w-0 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 transition hover:border-secondary/40 sm:p-6"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <span className="rounded-lg bg-slate-100 px-3 py-1.5 text-[10px] font-bold text-primary">
                         {room.room_type === "kelas"
                           ? "Ruang Kelas"
                           : "Laboratorium"}
-                      </p>
-                    </div>
-                  </div>
+                      </span>
 
-                  <div className="mt-4 flex items-center justify-between gap-3">
-                    <span
-                      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${info.className}`}
-                    >
-                      <span className={`h-2 w-2 rounded-full ${info.dot}`} />
-                      {info.label}
-                    </span>
-
-                    <span className="text-xs text-slate-500">
-                      {room.capacity} orang
-                    </span>
-                  </div>
-
-                  <div className="mt-4 border-t border-slate-100 pt-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                      Lokasi
-                    </p>
-
-                    <p className="mt-1 text-sm text-slate-700">
-                      {[room.building, room.floor, room.location]
-                        .filter(Boolean)
-                        .join(" - ") || "Belum diisi"}
-                    </p>
-                  </div>
-
-                  <div className="mt-4 border-t border-slate-100 pt-4">
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        Jadwal Pemakaian
-                      </p>
-
-                      <span className="text-xs text-slate-400">
-                        {schedules.length} reservasi
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-semibold ${info.badge}`}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className={`h-1.5 w-1.5 rounded-full ${info.dot}`}
+                        />
+                        {info.label}
                       </span>
                     </div>
 
-                    {schedules.length === 0 ? (
-                      <div className="mt-3 rounded-lg bg-green-50 p-3">
-                        <p className="text-sm font-medium text-green-700">
-                          Belum ada reservasi aktif
-                        </p>
-                        <p className="mt-1 text-xs text-green-600">
-                          Ruangan tidak memiliki reservasi aktif pada tanggal ini.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="mt-3 space-y-2">
-                        {schedules.map((item, index) => {
-                          const matchedBooking = classBookings.find(
-                            (b) =>
-                              b.room_id === item.room_id &&
-                              b.starts_at === item.starts_at
-                          );
+                    <p className="mt-5 text-[10px] font-bold uppercase tracking-widest text-muted">
+                      {room.room_code}
+                    </p>
 
-                          if (matchedBooking) {
-                            return (
-                              <div
-                                key={`${item.room_id}-${item.starts_at}-${index}`}
-                                className="flex flex-col gap-1 rounded-lg border border-blue-200 bg-blue-50/80 p-3"
-                              >
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="text-sm font-bold text-blue-950">
-                                    {matchedBooking.title}
-                                  </span>
-                                  <span className="rounded-full bg-blue-600 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-                                    Kelas Anda
-                                  </span>
-                                </div>
-                                <div className="flex items-center justify-between text-xs text-blue-700">
-                                  <span>
-                                    {matchedBooking.activity_type ??
-                                      matchedBooking.purpose ??
-                                      "Kegiatan kelas"}
-                                  </span>
-                                  <span className="font-semibold tabular-nums">
-                                    {formatTime(item.starts_at)} - {formatTime(item.ends_at)}
-                                  </span>
-                                </div>
-                              </div>
+                    <h3 className="mt-2 break-words font-heading text-xl font-extrabold text-primary">
+                      {room.room_name}
+                    </h3>
+
+                    <p className="mt-2 text-xs leading-7 text-muted">
+                      {[
+                        room.building,
+                        room.floor
+                          ? `Lantai ${room.floor}`
+                          : null,
+                        room.location,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ") || "Lokasi belum diisi"}
+                    </p>
+
+                    <p className="mt-3 text-xs font-semibold text-primary">
+                      Kapasitas {room.capacity} orang
+                    </p>
+
+                    <div className="mt-5 border-t border-slate-100 pt-5">
+                      <div className="flex items-center justify-between gap-3">
+                        <h4 className="text-xs font-bold text-primary">
+                          Jadwal Pemakaian
+                        </h4>
+
+                        <span className="text-[10px] text-muted">
+                          {schedules.length} reservasi
+                        </span>
+                      </div>
+
+                      {schedules.length === 0 ? (
+                        <div className="mt-3 rounded-2xl border border-dashed border-slate-200 bg-white p-5 text-center">
+                          <CalendarIcon className="mx-auto h-6 w-6 text-slate-400" />
+
+                          <p className="mt-3 text-xs font-semibold text-primary">
+                            Belum ada reservasi
+                          </p>
+
+                          <p className="mt-2 text-[11px] leading-6 text-muted">
+                            Tidak ada reservasi aktif pada
+                            tanggal yang dipilih.
+                          </p>
+                        </div>
+                      ) : (
+                        <ul className="mt-3 space-y-2">
+                          {schedules.map((item, index) => {
+                            const booking = classBookings.find(
+                              (candidate) =>
+                                candidate.room_id === item.room_id &&
+                                Date.parse(candidate.starts_at) ===
+                                  Date.parse(item.starts_at) &&
+                                Date.parse(candidate.ends_at) ===
+                                  Date.parse(item.ends_at),
                             );
-                          }
 
-                          return (
-                            <div
-                              key={`${item.room_id}-${item.starts_at}-${index}`}
-                              className="flex items-center justify-between gap-3 rounded-lg bg-slate-50 px-3 py-2.5"
-                            >
-                              <span className="text-xs text-slate-500">
-                                Pemakaian {index + 1}
-                              </span>
+                            const active =
+                              date === today &&
+                              now !== null &&
+                              now >= Date.parse(item.starts_at) &&
+                              now < Date.parse(item.ends_at);
 
-                              <span className="text-sm font-semibold tabular-nums text-slate-800">
-                                {formatTime(item.starts_at)}
-                                {" - "}
-                                {formatTime(item.ends_at)}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
+                            return (
+                              <li
+                                key={`${item.starts_at}-${item.ends_at}-${index}`}
+                                className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-3"
+                              >
+                                <span
+                                  aria-hidden="true"
+                                  className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
+                                    active
+                                      ? "bg-red-500"
+                                      : "bg-secondary"
+                                  }`}
+                                />
 
-                  {room.facilities.length > 0 && (
-                    <div className="mt-4 border-t border-slate-100 pt-4">
-                      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
-                        Fasilitas
-                      </p>
+                                <div className="min-w-0 flex-1">
+                                  <p className="break-words text-xs font-bold text-primary">
+                                    {booking?.title ||
+                                      `Pemakaian ${index + 1}`}
+                                  </p>
 
-                      <div className="flex flex-wrap gap-1.5">
-                        {room.facilities.slice(0, 3).map((facility, index) => (
-                          <span
-                            key={`${facility}-${index}`}
-                            className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-600"
-                          >
-                            {facility}
-                          </span>
-                        ))}
+                                  <p className="mt-2 text-xs tabular-nums text-muted">
+                                    {timeRange(item, date)}
+                                  </p>
 
-                        {room.facilities.length > 3 && (
-                          <span className="rounded-md bg-slate-100 px-2 py-1 text-xs text-slate-500">
-                            +{room.facilities.length - 3} lainnya
-                          </span>
-                        )}
-                      </div>
+                                  {(booking || active) && (
+                                    <div className="mt-2 flex flex-wrap gap-2">
+                                      {booking && (
+                                        <span className="rounded-md bg-slate-100 px-2 py-1 text-[9px] font-semibold text-primary">
+                                          Kelas Anda
+                                        </span>
+                                      )}
+
+                                      {active && (
+                                        <span className="rounded-md bg-red-50 px-2 py-1 text-[9px] font-semibold text-red-700">
+                                          Sedang berlangsung
+                                        </span>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
                     </div>
-                  )}
-                </article>
-              );
-            })}
+
+                    <div className="mt-5 border-t border-slate-100 pt-4">
+                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-muted">
+                        Fasilitas
+                      </h4>
+
+                      {room.facilities.length > 0 ? (
+                        <ul className="mt-3 flex flex-wrap gap-2">
+                          {room.facilities
+                            .slice(0, 4)
+                            .map((facility, index) => (
+                              <li
+                                key={`${facility}-${index}`}
+                                className="max-w-full break-words rounded-lg border border-slate-200 px-2.5 py-1.5 text-[10px] font-medium text-primary"
+                              >
+                                {facility}
+                              </li>
+                            ))}
+
+                          {room.facilities.length > 4 && (
+                            <li className="rounded-lg bg-slate-50 px-2.5 py-1.5 text-[10px] text-muted">
+                              +{room.facilities.length - 4} lainnya
+                            </li>
+                          )}
+                        </ul>
+                      ) : (
+                        <p className="mt-3 text-xs text-muted">
+                          Informasi fasilitas belum tersedia.
+                        </p>
+                      )}
+                    </div>
+                  </article>
+                );
+              },
+            )}
           </div>
         )}
       </section>
 
-      {/* Legend */}
-      <section className="rounded-xl border border-slate-200 bg-white p-5">
-        <h3 className="font-semibold text-slate-900">
-          Keterangan Status
-        </h3>
+      <section className="rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-6">
+        <h2 className="text-sm font-bold text-primary">
+          Memahami Status Ruangan
+        </h2>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-green-500" />
-            <span className="text-sm text-slate-600">Tersedia</span>
-          </div>
+        <ul className="mt-4 flex flex-wrap gap-4">
+          {Object.entries(statusConfig).map(([key, info]) => (
+            <li
+              key={key}
+              className="flex items-center gap-2 text-xs text-muted"
+            >
+              <span
+                aria-hidden="true"
+                className={`h-2 w-2 rounded-full ${info.dot}`}
+              />
+              {info.label}
+            </li>
+          ))}
+        </ul>
 
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
-            <span className="text-sm text-slate-600">Ada Jadwal</span>
-          </div>
+        <p className="mt-4 text-xs leading-7 text-muted">
+          Tersedia berarti tidak ada reservasi pada tanggal pilihan.
+          Ada Jadwal berarti ruangan memiliki reservasi pada tanggal
+          tersebut. Sedang Digunakan menunjukkan reservasi yang
+          sedang berlangsung saat ini pada hari ini.
+        </p>
 
-          <div className="flex items-center gap-2">
-            <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
-            <span className="text-sm text-slate-600">
-              Sedang Digunakan
-            </span>
-          </div>
-        </div>
-
-        <p className="mt-4 text-xs leading-relaxed text-slate-400">
-          Status berdasarkan reservasi aktif yang telah disetujui.
-          Pengajuan yang masih Pending tidak dianggap sebagai pemakaian
-          ruangan. Data diperbarui ketika halaman dimuat, tanggal berubah,
-          atau tombol Muat Ulang ditekan.
+        <p className="mt-3 text-xs leading-7 text-muted">
+          Pengajuan pending belum dihitung sebagai pemakaian.
+          Data dimuat ulang saat halaman dibuka, tanggal diubah,
+          atau tombol Muat Ulang ditekan. Indikator waktu mengikuti
+          jam perangkat dalam zona WIB.
         </p>
       </section>
     </div>

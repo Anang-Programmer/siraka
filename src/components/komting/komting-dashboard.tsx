@@ -1,9 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { getErrorMessage } from "@/lib/errors";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getErrorMessage } from "@/lib/errors";
 
 type DashboardSummary = {
   fullName: string;
@@ -16,238 +22,666 @@ type DashboardSummary = {
   inactiveStudents: number;
 };
 
-const quickActions = [
+type IconName =
+  | "calendar"
+  | "inbox"
+  | "clock"
+  | "approval"
+  | "users"
+  | "settings"
+  | "arrow"
+  | "refresh";
+
+const quickActions: {
+  title: string;
+  description: string;
+  href: string;
+  icon: IconName;
+  color: string;
+}[] = [
   {
     title: "Ajukan Booking",
-    description: "Ajukan penggunaan ruang untuk kebutuhan kelas.",
+    description:
+      "Siapkan ruangan untuk perkuliahan dan kegiatan kelas.",
     href: "/dashboard/komting/bookings/new",
-    action: "Buat pengajuan",
     icon: "calendar",
+    color: "bg-sky-50 text-sky-700",
   },
   {
     title: "Pengajuan Mahasiswa",
-    description: "Tinjau kebutuhan ruangan yang dikirim mahasiswa.",
+    description:
+      "Tinjau kebutuhan ruangan yang disampaikan anggota kelas.",
     href: "/dashboard/komting/student-requests",
-    action: "Buka kotak masuk",
     icon: "inbox",
+    color: "bg-teal-50 text-teal-700",
   },
   {
     title: "Status Booking",
-    description: "Pantau pengajuan, pembatalan, dan pemakaian ruangan.",
+    description:
+      "Pantau proses peninjauan dan status reservasi ruangan.",
     href: "/dashboard/komting/bookings",
-    action: "Lihat status",
     icon: "clock",
+    color: "bg-indigo-50 text-indigo-700",
   },
   {
     title: "Persetujuan Mahasiswa",
-    description: "Tinjau pendaftaran mahasiswa ke kelasmu.",
+    description:
+      "Periksa pendaftaran mahasiswa yang ingin bergabung.",
     href: "/dashboard/komting/registrations",
-    action: "Tinjau pendaftar",
-    icon: "user-check",
+    icon: "approval",
+    color: "bg-amber-50 text-amber-800",
   },
   {
     title: "Daftar Mahasiswa",
-    description: "Lihat anggota kelas dan kelola status akun.",
+    description:
+      "Lihat anggota kelas dan kelola status akun mahasiswa.",
     href: "/dashboard/komting/students",
-    action: "Buka daftar",
     icon: "users",
+    color: "bg-emerald-50 text-emerald-700",
   },
   {
     title: "Pengaturan Akun",
-    description: "Lihat profil dan ubah password akun.",
+    description:
+      "Periksa informasi profil dan perbarui kata sandi akun.",
     href: "/dashboard/komting/settings",
-    action: "Kelola akun",
     icon: "settings",
+    color: "bg-slate-100 text-primary",
   },
-] as const;
+];
 
-function ActionIcon({ name }: { name: (typeof quickActions)[number]["icon"] }) {
-  const common = { fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
-  if (name === "calendar") return <svg viewBox="0 0 24 24" aria-hidden="true" {...common}><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18M12 13v5M9.5 15.5h5" /></svg>;
-  if (name === "inbox") return <svg viewBox="0 0 24 24" aria-hidden="true" {...common}><path d="M4 4h16l2 11v4H2v-4L4 4Z" /><path d="M2 15h6l2 2h4l2-2h6" /></svg>;
-  if (name === "clock") return <svg viewBox="0 0 24 24" aria-hidden="true" {...common}><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3.5 2" /></svg>;
-  if (name === "user-check") return <svg viewBox="0 0 24 24" aria-hidden="true" {...common}><circle cx="9" cy="7" r="4" /><path d="M2 20v-1.5a4 4 0 0 1 4-4h6a4 4 0 0 1 3.5 2M16 10l2 2 4-4" /></svg>;
-  if (name === "settings") return <svg viewBox="0 0 24 24" aria-hidden="true" {...common}><circle cx="12" cy="12" r="3" /><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.5.9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.5-.9l-1.7.6-1.4-2.4 1.4-1.1a7 7 0 0 1 0-1.8L6.3 12l1.4-2.4 1.7.6a8 8 0 0 1 1.5-.9l.3-1.8H14l.3 1.8a8 8 0 0 1 1.5.9l1.7-.6 1.4 2.4-1.4 1.1a7 7 0 0 1-.1 1.9Z" /></svg>;
-  return <svg viewBox="0 0 24 24" aria-hidden="true" {...common}><path d="M16 20v-1.5a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20" /><circle cx="9" cy="7" r="4" /><path d="M18 8a4 4 0 1 1 0 8" /></svg>;
-}
-
-function StatCard({ label, value, detail, href, tone = "slate" }: {
-  label: string;
-  value: number | string;
-  detail: string;
-  href?: string;
-  tone?: "slate" | "amber" | "emerald" | "blue";
+function Icon({
+  name,
+  className = "h-5 w-5",
+}: {
+  name: IconName;
+  className?: string;
 }) {
-  const toneClass = {
-    slate: "border-slate-200 text-slate-900",
-    amber: "border-amber-200 text-amber-700",
-    emerald: "border-emerald-200 text-emerald-700",
-    blue: "border-blue-200 text-blue-700",
-  }[tone];
-  const content = (
-    <div className={`h-full rounded-xl border bg-white p-5 ${toneClass} ${href ? "transition hover:-translate-y-0.5 hover:shadow-sm" : ""}`}>
-      <p className="text-sm text-slate-500">{label}</p>
-      <p className="mt-2 text-3xl font-bold tabular-nums">{value}</p>
-      <p className="mt-1 text-xs text-slate-500">{detail}</p>
-    </div>
+  const paths: Record<IconName, ReactNode> = {
+    calendar: (
+      <>
+        <rect x="3" y="5" width="18" height="16" rx="3" />
+        <path d="M7 3v4M17 3v4M3 10h18M12 13v5M9.5 15.5h5" />
+      </>
+    ),
+    inbox: (
+      <>
+        <path d="M4 4h16l2 11v4H2v-4L4 4Z" />
+        <path d="M2 15h6l2 2h4l2-2h6" />
+      </>
+    ),
+    clock: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 7v5l3.5 2" />
+      </>
+    ),
+    approval: (
+      <>
+        <circle cx="8" cy="7" r="3" />
+        <path d="M2 21v-2a6 6 0 0 1 12 0v2" />
+        <path d="m15 10 2 2 5-5" />
+      </>
+    ),
+    users: (
+      <>
+        <circle cx="9" cy="7" r="3" />
+        <path d="M3 21v-2a6 6 0 0 1 12 0v2" />
+        <path d="M16 4a3 3 0 0 1 0 6M21 21v-2a6 6 0 0 0-4-5.7" />
+      </>
+    ),
+    settings: (
+      <>
+        <path d="M4 6h16M4 12h16M4 18h16" />
+        <circle
+          cx="8"
+          cy="6"
+          r="2"
+          fill="currentColor"
+          stroke="none"
+        />
+        <circle
+          cx="16"
+          cy="12"
+          r="2"
+          fill="currentColor"
+          stroke="none"
+        />
+        <circle
+          cx="10"
+          cy="18"
+          r="2"
+          fill="currentColor"
+          stroke="none"
+        />
+      </>
+    ),
+    arrow: <path d="M5 12h14m-6-6 6 6-6 6" />,
+    refresh: (
+      <>
+        <path d="M20 7v5h-5M4 17v-5h5" />
+        <path d="M6 7a7 7 0 0 1 11.5-1L20 9" />
+        <path d="M4 15l2.5 3A7 7 0 0 0 18 17" />
+      </>
+    ),
+  };
+
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.7"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className={className}
+    >
+      {paths[name]}
+    </svg>
   );
-  return href ? <Link href={href} className="block">{content}</Link> : content;
 }
 
 export default function KomtingDashboard() {
-  const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const controllerRef = useRef<AbortController | null>(null);
+
+  const [summary, setSummary] =
+    useState<DashboardSummary | null>(null);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState("");
 
-  const loadDashboard = useCallback((signal?: AbortSignal) => {
-    const request = async () => {
-      const supabase = createClient();
-      const { data: authData, error: authError } = await supabase.auth.getUser();
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Sesi login tidak ditemukan. Silakan login ulang.");
+  const loadDashboard = useCallback(async () => {
+    controllerRef.current?.abort();
 
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("full_name, class_id")
-        .eq("id", authData.user.id)
-        .single();
+    const controller = new AbortController();
+    controllerRef.current = controller;
+
+    const { signal } = controller;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const supabase = createClient();
+
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (signal.aborted) return;
+      if (authError) throw authError;
+
+      if (!user) {
+        throw new Error(
+          "Sesi login tidak ditemukan. Silakan login ulang.",
+        );
+      }
+
+      const { data: profile, error: profileError } =
+        await supabase
+          .from("profiles")
+          .select("full_name, class_id")
+          .eq("id", user.id)
+          .single();
+
+      if (signal.aborted) return;
       if (profileError) throw profileError;
-      if (!profile.class_id) throw new Error("Akun Komting belum memiliki kelas.");
+
+      if (!profile.class_id) {
+        throw new Error("Akun Komting belum memiliki kelas.");
+      }
 
       const [
-        { data: classData, error: classError },
-        { count: pendingBookings, error: pendingBookingError },
-        { count: approvedBookings, error: approvedBookingError },
-        { count: pendingRegistrations, error: registrationError },
-        { count: pendingStudentRequests, error: studentRequestError },
-        { data: students, error: studentsError },
+        classResult,
+        pendingBookingResult,
+        approvedBookingResult,
+        registrationResult,
+        requestResult,
+        studentResult,
       ] = await Promise.all([
-        supabase.from("classes").select("class_code, class_name").eq("id", profile.class_id).single(),
-        supabase.from("bookings").select("id", { count: "exact", head: true }).eq("requester_id", authData.user.id).in("status", ["pending", "under_review"]),
-        supabase.from("bookings").select("id", { count: "exact", head: true }).eq("requester_id", authData.user.id).eq("status", "approved"),
-        supabase.from("registration_requests").select("id", { count: "exact", head: true }).eq("class_id", profile.class_id).eq("requested_role", "mahasiswa").eq("status", "pending"),
-        supabase.from("student_room_requests").select("id", { count: "exact", head: true }).eq("class_id", profile.class_id).eq("status", "pending"),
+        supabase
+          .from("classes")
+          .select("class_code, class_name")
+          .eq("id", profile.class_id)
+          .single(),
+
+        supabase
+          .from("bookings")
+          .select("id", { count: "exact", head: true })
+          .eq("requester_id", user.id)
+          .in("status", ["pending", "under_review"]),
+
+        supabase
+          .from("bookings")
+          .select("id", { count: "exact", head: true })
+          .eq("requester_id", user.id)
+          .eq("status", "approved"),
+
+        supabase
+          .from("registration_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("class_id", profile.class_id)
+          .eq("requested_role", "mahasiswa")
+          .eq("status", "pending"),
+
+        supabase
+          .from("student_room_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("class_id", profile.class_id)
+          .eq("status", "pending"),
+
         supabase.rpc("get_komting_student_directory"),
       ]);
 
-      const firstError = classError || pendingBookingError || approvedBookingError || registrationError || studentRequestError || studentsError;
-      if (firstError) throw firstError;
+      if (signal.aborted) return;
 
-      const directory = (students ?? []) as Array<{ is_active: boolean }>;
-      const activeStudents = directory.filter((student) => student.is_active).length;
-      if (signal?.aborted) return;
+      const queryError =
+        classResult.error ||
+        pendingBookingResult.error ||
+        approvedBookingResult.error ||
+        registrationResult.error ||
+        requestResult.error ||
+        studentResult.error;
+
+      if (queryError) throw queryError;
+
+      const students = (studentResult.data ?? []) as {
+        is_active: boolean;
+      }[];
+
+      const activeStudents = students.filter(
+        (student) => student.is_active,
+      ).length;
+
       setSummary({
         fullName: profile.full_name,
-        classLabel: classData ? `${classData.class_code} - ${classData.class_name}` : "Kelas Komting",
-        pendingBookings: pendingBookings ?? 0,
-        approvedBookings: approvedBookings ?? 0,
-        pendingRegistrations: pendingRegistrations ?? 0,
-        pendingStudentRequests: pendingStudentRequests ?? 0,
+        classLabel: classResult.data
+          ? `${classResult.data.class_code} · ${classResult.data.class_name}`
+          : "Kelas Komting",
+        pendingBookings: pendingBookingResult.count ?? 0,
+        approvedBookings: approvedBookingResult.count ?? 0,
+        pendingRegistrations: registrationResult.count ?? 0,
+        pendingStudentRequests: requestResult.count ?? 0,
         activeStudents,
-        inactiveStudents: directory.length - activeStudents,
+        inactiveStudents: students.length - activeStudents,
       });
-    };
-    return request().catch((err: unknown) => {
+    } catch (err) {
+      if (signal.aborted) return;
+
       console.error("Load Komting dashboard:", err);
-      if (!signal?.aborted) setError(getErrorMessage(err, "Gagal memuat dashboard Komting."));
-    }).finally(() => {
-      if (!signal?.aborted) {
-        setLoading(false);
-        setRefreshing(false);
-      }
-    });
+
+      setError(
+        getErrorMessage(
+          err,
+          "Gagal memuat dashboard Komting.",
+        ),
+      );
+    } finally {
+      if (!signal.aborted) setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    const controller = new AbortController();
-    void loadDashboard(controller.signal);
-    return () => controller.abort();
+    void loadDashboard();
+
+    return () => {
+      controllerRef.current?.abort();
+    };
   }, [loadDashboard]);
 
-  const displayName = summary?.fullName?.trim().split(/\s+/)[0] ?? "Komting";
+  const ready = !loading && !error && summary !== null;
+
+  const displayName =
+    summary?.fullName?.trim() || "Komting";
+
+  const attentionCount = summary
+    ? summary.pendingStudentRequests +
+      summary.pendingRegistrations
+    : 0;
+
+  const stats: {
+    label: string;
+    value: number;
+    description: string;
+    href: string;
+    icon: IconName;
+    color: string;
+  }[] = [
+    {
+      label: "Pengajuan Mahasiswa",
+      value: summary?.pendingStudentRequests ?? 0,
+      description: "Menunggu tanggapanmu",
+      href: "/dashboard/komting/student-requests",
+      icon: "inbox",
+      color: "bg-teal-50 text-teal-700",
+    },
+    {
+      label: "Pendaftaran Mahasiswa",
+      value: summary?.pendingRegistrations ?? 0,
+      description: "Perlu verifikasi kelas",
+      href: "/dashboard/komting/registrations",
+      icon: "approval",
+      color: "bg-sky-50 text-sky-700",
+    },
+    {
+      label: "Booking Menunggu",
+      value: summary?.pendingBookings ?? 0,
+      description: "Menunggu atau sedang ditinjau",
+      href: "/dashboard/komting/bookings",
+      icon: "clock",
+      color: "bg-amber-50 text-amber-800",
+    },
+    {
+      label: "Booking Disetujui",
+      value: summary?.approvedBookings ?? 0,
+      description: "Total booking milikmu yang disetujui",
+      href: "/dashboard/komting/bookings",
+      icon: "calendar",
+      color: "bg-emerald-50 text-emerald-700",
+    },
+  ];
 
   return (
     <div className="space-y-7">
-      <section className="flex flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-6 sm:flex-row sm:items-center">
+      <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-sm font-medium text-slate-500">Dashboard Komting</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
-            {loading ? "Selamat datang" : `Halo, ${displayName}!`}
-          </h1>
-          <p className="mt-2 text-sm text-slate-500">
-            {summary?.classLabel ?? "Ringkasan aktivitas kelas dan peminjaman ruangan."}
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+            Workspace / Ringkasan
           </p>
+
+          <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
+            Dashboard Komting
+          </h1>
         </div>
+
         <button
           type="button"
-          onClick={() => {
-                      setRefreshing(true);
-                      setError("");
-                      void loadDashboard();
-                    }}
-          disabled={loading || refreshing}
-          className="shrink-0 rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          onClick={() => void loadDashboard()}
+          disabled={loading}
+          className="btn-outline w-fit rounded-xl text-xs shadow-sm"
         >
-          {refreshing ? "Memuat..." : "Perbarui Ringkasan"}
+          <Icon
+            name="refresh"
+            className={`h-4 w-4 ${
+              loading ? "animate-spin" : ""
+            }`}
+          />
+
+          {loading ? "Memuat..." : "Muat Ulang"}
         </button>
       </section>
 
-      {error && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">{error}</div>}
+      {error && (
+        <p
+          role="alert"
+          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+        >
+          {error}
+        </p>
+      )}
 
-      <section className="space-y-3">
-        <div className="flex items-end justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900">Ringkasan Aktivitas</h2>
-            <p className="mt-1 text-sm text-slate-500">Hal yang perlu kamu pantau sebagai Komting.</p>
+      <section className="relative overflow-hidden rounded-[28px] bg-[#173A56] p-6 text-white sm:p-8 lg:p-9">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(41,169,184,0.35),transparent_65%)]"
+        />
+
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-16 -top-28 h-80 w-80 rounded-full border border-white/10"
+        />
+
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-32 right-10 h-80 w-80 rounded-full border border-white/10"
+        />
+
+        <div className="relative flex flex-col justify-between gap-7 xl:flex-row xl:items-center">
+          <div className="max-w-xl">
+            <span className="inline-flex rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[10px] font-semibold text-cyan-100">
+              Panel Koordinasi Kelas
+            </span>
+
+            <h2 className="mt-5 break-words font-heading text-2xl font-extrabold leading-tight sm:text-3xl">
+              Selamat datang,
+              <span className="mt-1 block text-[#86E0E6]">
+                {loading ? "..." : displayName}.
+              </span>
+            </h2>
+
+            <p className="mt-4 max-w-lg text-xs leading-7 text-slate-200 sm:text-sm">
+              Kelola kebutuhan ruangan, tinjau pengajuan mahasiswa,
+              dan koordinasikan kegiatan kelas dalam satu tempat.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/dashboard/komting/bookings/new"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#86E0E6] px-4 py-2.5 text-xs font-bold text-[#123549] transition hover:bg-cyan-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                Ajukan Booking
+                <Icon name="arrow" className="h-4 w-4" />
+              </Link>
+
+              <Link
+                href="/dashboard/komting/student-requests"
+                className="inline-flex min-h-11 items-center rounded-xl border border-white/25 px-4 py-2.5 text-xs font-semibold transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              >
+                Tinjau Pengajuan
+              </Link>
+            </div>
           </div>
-        </div>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard label="Saran Mahasiswa Menunggu" value={loading ? "-" : summary?.pendingStudentRequests ?? 0} detail="Perlu ditinjau" href="/dashboard/komting/student-requests" tone="amber" />
-          <StatCard label="Pendaftaran Mahasiswa" value={loading ? "-" : summary?.pendingRegistrations ?? 0} detail="Menunggu persetujuan kelas" href="/dashboard/komting/registrations" tone="blue" />
-          <StatCard label="Booking Menunggu" value={loading ? "-" : summary?.pendingBookings ?? 0} detail="Menunggu atau sedang ditinjau" href="/dashboard/komting/bookings" tone="amber" />
-          <StatCard label="Booking Disetujui" value={loading ? "-" : summary?.approvedBookings ?? 0} detail="Booking milikmu" href="/dashboard/komting/bookings" tone="emerald" />
+
+          <div className="w-full rounded-2xl border border-white/15 bg-white/[0.07] p-5 xl:max-w-64">
+            <span className="inline-flex rounded-xl bg-white/10 p-2.5 text-cyan-100">
+              <Icon name="users" className="h-6 w-6" />
+            </span>
+
+            <p className="mt-4 text-[10px] font-semibold uppercase tracking-widest text-slate-300">
+              Kelas yang Dikoordinasikan
+            </p>
+
+            <p className="mt-3 break-words text-sm font-bold leading-7">
+              {ready ? summary.classLabel : "—"}
+            </p>
+          </div>
         </div>
       </section>
 
-      <section className="space-y-3">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900">Aksi Cepat</h2>
-          <p className="mt-1 text-sm text-slate-500">Pilih pekerjaan yang ingin kamu lakukan sekarang.</p>
+      <section>
+        <div className="mb-5 flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="h-6 w-1 rounded-full bg-secondary"
+          />
+
+          <div>
+            <h2 className="font-heading text-lg font-extrabold text-primary">
+              Ringkasan Aktivitas
+            </h2>
+
+            <p className="mt-1 text-xs text-muted">
+              Pantau hal yang perlu ditindaklanjuti.
+            </p>
+          </div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {quickActions.map((action) => (
+
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {stats.map((stat) => (
             <Link
-              key={action.href}
-              href={action.href}
-              className="group flex min-h-40 flex-col rounded-xl border border-slate-200 bg-white p-5 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm"
+              key={stat.label}
+              href={stat.href}
+              className="group rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 transition hover:border-secondary/40 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
-              <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 p-2.5 text-slate-700">
-                  <ActionIcon name={action.icon} />
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="text-xs font-semibold leading-5 text-muted">
+                  {stat.label}
+                </h3>
+
+                <span
+                  className={`shrink-0 rounded-xl p-2 ${stat.color}`}
+                >
+                  <Icon name={stat.icon} className="h-4 w-4" />
                 </span>
-                <h3 className="font-semibold text-slate-900">{action.title}</h3>
               </div>
-              <p className="mt-3 flex-1 text-sm leading-5 text-slate-500">{action.description}</p>
-              <span className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-slate-800">
-                {action.action}<span aria-hidden="true" className="transition group-hover:translate-x-1">→</span>
-              </span>
+
+              <p className="mt-5 font-heading text-4xl font-extrabold text-primary">
+                {ready ? stat.value : "—"}
+              </p>
+
+              <div className="mt-3 flex items-center justify-between gap-2">
+                <p className="text-[10px] leading-5 text-muted">
+                  {stat.description}
+                </p>
+
+                <Icon
+                  name="arrow"
+                  className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:text-primary"
+                />
+              </div>
             </Link>
           ))}
         </div>
       </section>
 
-      <section className="rounded-xl border border-slate-200 bg-slate-50 p-5">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="font-semibold text-slate-900">Keanggotaan Kelas</h2>
-            <p className="mt-1 text-sm text-slate-500">Ringkasan mahasiswa yang berada di bawah koordinasimu.</p>
+      <section className="grid gap-5 lg:grid-cols-2">
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-6">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-heading text-base font-extrabold text-primary">
+              Perlu Perhatian
+            </h2>
+
+            <span className="rounded-xl bg-amber-50 p-2 text-amber-800">
+              <Icon name="inbox" />
+            </span>
           </div>
-          <Link href="/dashboard/komting/students" className="text-sm font-semibold text-slate-800 underline decoration-slate-300 underline-offset-4 hover:decoration-slate-800">Kelola daftar mahasiswa</Link>
+
+          <p className="mt-4 text-sm font-bold text-primary">
+            {!ready
+              ? "Memuat ringkasan..."
+              : attentionCount > 0
+                ? `${attentionCount} pengajuan menunggu tindakanmu`
+                : "Tidak ada pengajuan yang menunggu"}
+          </p>
+
+          <p className="mt-2 text-xs leading-7 text-muted">
+            Tinjau kebutuhan ruangan mahasiswa dan pendaftaran
+            anggota kelas melalui halaman terkait.
+          </p>
+
+          <div className="mt-5 grid gap-2 sm:grid-cols-2">
+            <Link
+              href="/dashboard/komting/student-requests"
+              className="btn-outline rounded-xl text-xs"
+            >
+              Pengajuan Mahasiswa
+            </Link>
+
+            <Link
+              href="/dashboard/komting/registrations"
+              className="btn-outline rounded-xl text-xs"
+            >
+              Pendaftaran Mahasiswa
+            </Link>
+          </div>
         </div>
-        <div className="mt-4 flex flex-wrap gap-x-8 gap-y-3">
-          <div><p className="text-xs text-slate-500">Mahasiswa aktif</p><p className="mt-1 text-xl font-bold text-emerald-700">{loading ? "-" : summary?.activeStudents ?? 0}</p></div>
-          <div><p className="text-xs text-slate-500">Mahasiswa nonaktif</p><p className="mt-1 text-xl font-bold text-slate-700">{loading ? "-" : summary?.inactiveStudents ?? 0}</p></div>
+
+        <div className="rounded-3xl border border-slate-200/80 bg-white p-6">
+          <div className="flex items-center justify-between gap-3">
+            <h2 className="font-heading text-base font-extrabold text-primary">
+              Keanggotaan Kelas
+            </h2>
+
+            <Link
+              href="/dashboard/komting/students"
+              className="rounded-md text-xs font-bold text-primary hover:underline focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              Kelola →
+            </Link>
+          </div>
+
+          <p className="mt-2 text-xs leading-7 text-muted">
+            Mahasiswa yang berada di bawah koordinasimu.
+          </p>
+
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-muted">
+                <span
+                  aria-hidden="true"
+                  className="h-1.5 w-1.5 rounded-full bg-emerald-500"
+                />
+                Mahasiswa Aktif
+              </span>
+
+              <p className="mt-3 font-heading text-3xl font-extrabold text-primary">
+                {ready ? summary.activeStudents : "—"}
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-slate-200 p-4">
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-muted">
+                <span
+                  aria-hidden="true"
+                  className="h-1.5 w-1.5 rounded-full bg-slate-400"
+                />
+                Mahasiswa Nonaktif
+              </span>
+
+              <p className="mt-3 font-heading text-3xl font-extrabold text-primary">
+                {ready ? summary.inactiveStudents : "—"}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-5 flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="h-6 w-1 rounded-full bg-secondary"
+          />
+
+          <div>
+            <h2 className="font-heading text-lg font-extrabold text-primary">
+              Akses Cepat
+            </h2>
+
+            <p className="mt-1 text-xs text-muted">
+              Pilih pekerjaan yang ingin kamu lakukan.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {quickActions.map((action) => (
+            <Link
+              key={action.href}
+              href={action.href}
+              className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm shadow-slate-200/20 transition hover:border-secondary/40 hover:shadow-md hover:shadow-slate-200/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              <div className="flex items-center justify-between">
+                <span
+                  className={`flex h-12 w-12 items-center justify-center rounded-2xl ${action.color}`}
+                >
+                  <Icon name={action.icon} className="h-6 w-6" />
+                </span>
+
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-50 text-slate-400 transition group-hover:bg-primary group-hover:text-white">
+                  <Icon name="arrow" className="h-4 w-4" />
+                </span>
+              </div>
+
+              <h3 className="mt-5 font-heading text-sm font-extrabold text-primary">
+                {action.title}
+              </h3>
+
+              <p className="mt-2 text-xs leading-7 text-muted">
+                {action.description}
+              </p>
+            </Link>
+          ))}
         </div>
       </section>
     </div>
