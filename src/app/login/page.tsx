@@ -21,7 +21,7 @@ async function LoginContent() {
 export default function LoginPage() {
   return (
     <main className="grid min-h-screen bg-white lg:grid-cols-2">
-      <section className="relative flex flex-col justify-start overflow-hidden bg-primary px-4 py-12 text-white sm:px-12 lg:px-16 lg:py-20">
+      <section className="relative hidden flex-col justify-start overflow-hidden bg-primary px-4 py-12 text-white sm:px-12 lg:flex lg:px-16 lg:py-20">
         
 
         
