@@ -562,7 +562,7 @@ export default function BookingManagement() {
           </div>
         ) : filteredBookings.length === 0 ? (
           <div className="rounded-xl border border-slate-200 bg-white p-12 text-center">
-            <p className="text-3xl">📋</p>
+            
             <h3 className="mt-3 font-semibold text-slate-800">
               Tidak ada booking ditemukan
             </h3>
