@@ -5,20 +5,14 @@ import RegisterForm from "./register-form";
 export default function RegisterPage() {
   return (
     <main className="grid min-h-screen bg-white lg:grid-cols-2">
-      <section className="relative flex flex-col justify-start overflow-hidden bg-primary px-6 py-12 text-white sm:px-12 lg:px-16 lg:py-20">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-white/5"
-        />
+      <section className="relative flex flex-col justify-start overflow-hidden bg-primary px-4 py-12 text-white sm:px-12 lg:px-16 lg:py-20">
+        
 
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-40 -left-32 h-96 w-96 rounded-full bg-secondary/10"
-        />
+        
 
         <div className="relative mx-auto w-full max-w-xl pt-8 lg:pt-12">
           <div className="flex items-center gap-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-white p-2.5">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-lg bg-white p-2.5">
               <Image
                 src="/images/logo/logo.png"
                 alt="Logo SIRAKA"
@@ -30,7 +24,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <p className="font-heading text-3xl font-extrabold tracking-tight">
+              <p className="font-heading text-2xl font-bold tracking-tight">
                 SIRAKA
               </p>
 
@@ -51,21 +45,21 @@ export default function RegisterPage() {
           <div className="mt-8 flex flex-wrap gap-3">
             <Link
               href="/login"
-              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-action px-6 py-3 text-xs font-bold text-ink transition hover:bg-action/90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-action px-4 py-3 text-xs font-bold text-ink transition hover:bg-action/90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
             >
               MULAI SEKARANG
             </Link>
 
             <a
               href="#register-name"
-              className="btn-secondary px-6 text-xs"
+              className="btn-secondary px-4 text-xs"
             >
               DAFTAR SEKARANG
             </a>
           </div>
 
           <div className="mt-9">
-            <p className="text-[10px] font-semibold tracking-[0.2em] text-white/70">
+            <p className="text-[10px] font-semibold tracking-wide text-white/70">
               ANDA DAPAT MENGAKSES:
             </p>
 
@@ -87,7 +81,7 @@ export default function RegisterPage() {
         </div>
       </section>
 
-      <section className="flex min-w-0 flex-col px-6 py-10 sm:px-12 lg:px-16">
+      <section className="flex min-w-0 flex-col px-4 py-10 sm:px-12 lg:px-16">
         <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-4">
           <Link
             href="/login"
@@ -103,7 +97,7 @@ export default function RegisterPage() {
             />
 
             <div>
-              <p className="font-heading text-lg font-extrabold tracking-wide text-primary">
+              <p className="font-heading text-lg font-bold tracking-wide text-primary">
                 SIRAKA
               </p>
 
@@ -114,7 +108,7 @@ export default function RegisterPage() {
           </Link>
 
           <div className="mb-7">
-            <h1 className="text-2xl font-extrabold text-ink">
+            <h1 className="text-2xl font-bold text-ink">
               Buat Akun
             </h1>
 

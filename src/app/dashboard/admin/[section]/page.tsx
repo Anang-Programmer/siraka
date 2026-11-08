@@ -24,7 +24,7 @@ export default function AdminSectionPage() {
         {title}
       </h1>
 
-      <div className="rounded-xl border bg-white p-8">
+      <div className="rounded-md border bg-white p-5">
         <p className="font-medium text-slate-800">
           Halaman {title}
         </p>

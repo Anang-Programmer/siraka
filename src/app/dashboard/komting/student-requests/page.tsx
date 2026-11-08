@@ -11,7 +11,7 @@ async function StudentRequestInboxContent() {
 
 export default function KomtingStudentRequestsPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-sm text-slate-500">Memuat pengajuan mahasiswa...</div>}>
+    <Suspense fallback={<div className="p-5 text-sm text-slate-500">Memuat pengajuan mahasiswa...</div>}>
       <StudentRequestInboxContent />
     </Suspense>
   );

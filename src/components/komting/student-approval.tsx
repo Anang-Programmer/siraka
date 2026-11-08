@@ -358,14 +358,14 @@ export default function StudentApproval() {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
             Workspace / Verifikasi Anggota
           </p>
 
-          <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
+          <h1 className="mt-2 font-heading text-2xl font-bold text-primary sm:text-2xl">
             Persetujuan Mahasiswa
           </h1>
 
@@ -379,7 +379,7 @@ export default function StudentApproval() {
           type="button"
           onClick={() => void refreshRequests()}
           disabled={loading || busyId !== null}
-          className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
+          className="btn-outline w-fit shrink-0 rounded-md text-xs shadow-none"
         >
           {loading ? "Memuat..." : "↻ Muat Ulang"}
         </button>
@@ -388,7 +388,7 @@ export default function StudentApproval() {
       {loadError && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
         >
           {loadError}
         </p>
@@ -397,7 +397,7 @@ export default function StudentApproval() {
       {actionError && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
         >
           {actionError}
         </p>
@@ -406,7 +406,7 @@ export default function StudentApproval() {
       {success && (
         <div
           role="status"
-          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-7 text-emerald-700"
+          className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm leading-7 text-emerald-700"
         >
           <p>{success}</p>
 
@@ -420,8 +420,8 @@ export default function StudentApproval() {
       )}
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px]">
-        <div className="flex items-start gap-4 rounded-3xl border border-slate-200/80 bg-white p-6">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-primary">
+        <div className="flex items-start gap-4 rounded-lg border border-slate-200/80 bg-white p-4">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-primary">
             <ApprovalIcon className="h-6 w-6" />
           </span>
 
@@ -430,7 +430,7 @@ export default function StudentApproval() {
               Kelas yang Dikoordinasikan
             </p>
 
-            <h2 className="mt-3 break-words font-heading text-lg font-extrabold text-primary">
+            <h2 className="mt-3 break-words font-heading text-lg font-bold text-primary">
               {ready ? className : "—"}
             </h2>
 
@@ -441,18 +441,18 @@ export default function StudentApproval() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-slate-200/80 bg-white p-6">
+        <div className="rounded-lg border border-slate-200/80 bg-white p-4">
           <div className="flex items-center justify-between gap-3">
             <h2 className="text-xs font-semibold text-muted">
               Menunggu Persetujuan
             </h2>
 
-            <span className="rounded-xl bg-amber-50 p-2 text-amber-800">
+            <span className="rounded-md bg-amber-50 p-2 text-amber-800">
               <ApprovalIcon className="h-4 w-4" />
             </span>
           </div>
 
-          <p className="mt-4 font-heading text-4xl font-extrabold text-primary">
+          <p className="mt-4 font-heading text-3xl font-bold text-primary">
             {ready ? requests.length : "—"}
           </p>
 
@@ -462,7 +462,7 @@ export default function StudentApproval() {
         </div>
       </section>
 
-      <section className="rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-6">
+      <section className="rounded-lg border border-slate-200/80 bg-white p-4 sm:p-4">
         <label
           htmlFor="registration-search"
           className="mb-3 block text-xs font-bold text-primary"
@@ -490,7 +490,7 @@ export default function StudentApproval() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Cari nama, NIM, atau email..."
-            className="input-field min-h-11 rounded-xl pl-11"
+            className="input-field min-h-11 rounded-md pl-11"
           />
         </div>
       </section>
@@ -503,7 +503,7 @@ export default function StudentApproval() {
               className="h-6 w-1 rounded-full bg-secondary"
             />
 
-            <h2 className="font-heading text-lg font-extrabold text-primary">
+            <h2 className="font-heading text-lg font-bold text-primary">
               Calon Anggota Kelas
             </h2>
           </div>
@@ -521,7 +521,7 @@ export default function StudentApproval() {
         {loading ? (
           <div
             role="status"
-            className="rounded-3xl border border-slate-200 bg-white p-12 text-center"
+            className="rounded-lg border border-slate-200 bg-white p-12 text-center"
           >
             <div
               aria-hidden="true"
@@ -533,13 +533,13 @@ export default function StudentApproval() {
             </p>
           </div>
         ) : loadError ? (
-          <p className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-sm text-muted">
+          <p className="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm text-muted">
             Permohonan belum dapat dimuat. Silakan tekan
             Muat Ulang.
           </p>
         ) : filteredRequests.length === 0 ? (
-          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-primary">
+          <div className="rounded-lg border border-slate-200 bg-white p-12 text-center">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100 text-primary">
               <ApprovalIcon className="h-7 w-7" />
             </span>
 
@@ -559,7 +559,7 @@ export default function StudentApproval() {
               <button
                 type="button"
                 onClick={() => setSearch("")}
-                className="btn-outline mt-5 rounded-xl text-xs"
+                className="btn-outline mt-5 rounded-md text-xs"
               >
                 Hapus Pencarian
               </button>
@@ -579,13 +579,13 @@ export default function StudentApproval() {
               return (
                 <article
                   key={request.id}
-                  className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/20"
+                  className="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-none shadow-slate-200/20"
                 >
-                  <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-start sm:p-6">
+                  <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-4 sm:flex-row sm:items-start sm:p-4">
                     <div className="flex min-w-0 items-start gap-3">
                       <span
                         aria-hidden="true"
-                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-xs font-bold text-primary"
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-primary"
                       >
                         {initials(
                           applicant?.full_name || "Mahasiswa",
@@ -593,7 +593,7 @@ export default function StudentApproval() {
                       </span>
 
                       <div className="min-w-0">
-                        <h3 className="break-words font-heading text-base font-extrabold text-primary">
+                        <h3 className="break-words font-heading text-base font-bold text-primary">
                           {name}
                         </h3>
 
@@ -613,8 +613,8 @@ export default function StudentApproval() {
                     </span>
                   </div>
 
-                  <div className="space-y-5 p-5 sm:p-6">
-                    <dl className="grid gap-5 sm:grid-cols-2">
+                  <div className="space-y-5 p-4 sm:p-4">
+                    <dl className="grid gap-3 sm:grid-cols-2">
                       <div>
                         <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted">
                           Nomor Induk Mahasiswa
@@ -637,7 +637,7 @@ export default function StudentApproval() {
                     </dl>
 
                     {!applicant && (
-                      <p className="rounded-xl border border-amber-200 p-4 text-xs leading-7 text-amber-800">
+                      <p className="rounded-md border border-amber-200 p-4 text-xs leading-7 text-amber-800">
                         Informasi profil belum dapat ditampilkan.
                         Periksa kembali data pendaftar sebelum
                         mengambil keputusan.
@@ -652,7 +652,7 @@ export default function StudentApproval() {
                             openReview(request, "rejected")
                           }
                           disabled={busyId !== null || loading}
-                          className="inline-flex min-h-11 items-center justify-center rounded-xl border border-red-200 px-4 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="inline-flex min-h-11 items-center justify-center rounded-md border border-red-200 px-4 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           Tolak Pendaftaran
                         </button>
@@ -667,7 +667,7 @@ export default function StudentApproval() {
                             loading ||
                             !applicant
                           }
-                          className="btn-primary rounded-xl text-xs"
+                          className="btn-primary rounded-md text-xs"
                         >
                           Setujui Mahasiswa
                         </button>
@@ -679,7 +679,7 @@ export default function StudentApproval() {
                             void handleReview(event, request)
                           }
                           aria-busy={busyId === request.id}
-                          className="rounded-2xl border border-slate-200 p-4 sm:p-5"
+                          className="rounded-lg border border-slate-200 p-4 sm:p-4"
                         >
                           <h4 className="text-sm font-bold text-primary">
                             {review.decision === "approved"
@@ -722,7 +722,7 @@ export default function StudentApproval() {
                                 placeholder="Jelaskan alasan penolakan..."
                                 rows={3}
                                 required
-                                className="input-field resize-y rounded-xl"
+                                className="input-field resize-y rounded-md"
                               />
                             </div>
                           )}
@@ -732,7 +732,7 @@ export default function StudentApproval() {
                               type="button"
                               onClick={() => setReview(null)}
                               disabled={busyId !== null}
-                              className="btn-outline rounded-xl text-xs"
+                              className="btn-outline rounded-md text-xs"
                             >
                               Batal
                             </button>
@@ -742,8 +742,8 @@ export default function StudentApproval() {
                               disabled={busyId !== null}
                               className={
                                 review.decision === "approved"
-                                  ? "btn-primary rounded-xl text-xs"
-                                  : "btn-danger rounded-xl text-xs"
+                                  ? "btn-primary rounded-md text-xs"
+                                  : "btn-danger rounded-md text-xs"
                               }
                             >
                               {busyId === request.id
@@ -764,7 +764,7 @@ export default function StudentApproval() {
         )}
       </section>
 
-      <section className="rounded-2xl border border-dashed border-slate-300 bg-white p-5">
+      <section className="rounded-lg border border-dashed border-slate-300 bg-white p-4">
         <h2 className="text-xs font-bold text-primary">
           Periksa Data Sebelum Menyetujui
         </h2>

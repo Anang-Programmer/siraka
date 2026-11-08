@@ -13,7 +13,7 @@ export default function KomtingBookingPage() {
   return (
     <Suspense
       fallback={
-        <div className="p-8 text-sm text-slate-500">Memuat halaman booking...</div>
+        <div className="p-5 text-sm text-slate-500">Memuat halaman booking...</div>
       }
     >
       <BookingPageContent />

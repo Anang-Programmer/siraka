@@ -11,7 +11,7 @@ async function StudentListPageContent() {
 
 export default function KomtingStudentsPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-sm text-slate-500">Memuat daftar mahasiswa...</div>}>
+    <Suspense fallback={<div className="p-5 text-sm text-slate-500">Memuat daftar mahasiswa...</div>}>
       <StudentListPageContent />
     </Suspense>
   );

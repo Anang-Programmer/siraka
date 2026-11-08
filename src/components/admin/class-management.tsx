@@ -414,14 +414,14 @@ export default function ClassManagement() {
   ];
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
             Workspace / Data Akademik
           </p>
 
-          <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
+          <h1 className="mt-2 font-heading text-2xl font-bold text-primary sm:text-2xl">
             Data Kelas
           </h1>
 
@@ -436,7 +436,7 @@ export default function ClassManagement() {
             type="button"
             onClick={() => void refreshClasses()}
             disabled={loading || saving}
-            className="btn-outline rounded-xl text-xs"
+            className="btn-outline rounded-md text-xs"
           >
             {loading ? "Memuat..." : "↻ Muat Ulang"}
           </button>
@@ -445,7 +445,7 @@ export default function ClassManagement() {
             type="button"
             onClick={openForm}
             disabled={saving}
-            className="btn-primary rounded-xl text-xs"
+            className="btn-primary rounded-md text-xs"
           >
             + Tambah Kelas
           </button>
@@ -455,7 +455,7 @@ export default function ClassManagement() {
       {loadError && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
         >
           {loadError}
         </p>
@@ -464,7 +464,7 @@ export default function ClassManagement() {
       {success && (
         <div
           role="status"
-          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-7 text-emerald-700"
+          className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm leading-7 text-emerald-700"
         >
           <p>{success}</p>
 
@@ -484,19 +484,19 @@ export default function ClassManagement() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 sm:p-6"
+            className="rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20 sm:p-4"
           >
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-xs font-semibold text-muted">
                 {stat.label}
               </h2>
 
-              <span className={`rounded-xl p-2 ${stat.color}`}>
+              <span className={`rounded-md p-2 ${stat.color}`}>
                 <ClassIcon className="h-4 w-4" />
               </span>
             </div>
 
-            <p className="mt-4 font-heading text-4xl font-extrabold text-primary">
+            <p className="mt-4 font-heading text-3xl font-bold text-primary">
               {ready ? stat.value : "—"}
             </p>
 
@@ -510,11 +510,11 @@ export default function ClassManagement() {
       {showForm && (
         <section
           ref={formRef}
-          className="scroll-mt-28 overflow-hidden rounded-3xl border border-slate-200/80 bg-white"
+          className="scroll-mt-28 overflow-hidden rounded-lg border border-slate-200/80 bg-white"
         >
-          <div className="flex items-start justify-between gap-4 border-b border-slate-100 p-5 sm:p-6">
+          <div className="flex items-start justify-between gap-4 border-b border-slate-100 p-4 sm:p-4">
             <div>
-              <h2 className="font-heading text-lg font-extrabold text-primary">
+              <h2 className="font-heading text-lg font-bold text-primary">
                 Tambah Kelas Baru
               </h2>
 
@@ -528,7 +528,7 @@ export default function ClassManagement() {
               onClick={closeForm}
               disabled={saving}
               aria-label="Tutup formulir tambah kelas"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 text-xl text-muted hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-slate-200 text-xl text-muted hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50"
             >
               <span aria-hidden="true">×</span>
             </button>
@@ -537,12 +537,12 @@ export default function ClassManagement() {
           <form
             onSubmit={handleSubmit}
             aria-busy={saving}
-            className="p-5 sm:p-6"
+            className="p-4 sm:p-4"
           >
             {formError && (
               <p
                 role="alert"
-                className="mb-5 rounded-xl border border-red-200 bg-red-50 p-4 text-xs leading-7 text-red-700"
+                className="mb-5 rounded-md border border-red-200 bg-red-50 p-4 text-xs leading-7 text-red-700"
               >
                 {formError}
               </p>
@@ -556,7 +556,7 @@ export default function ClassManagement() {
                 Informasi kelas baru
               </legend>
 
-              <div className="grid gap-5 sm:grid-cols-2">
+              <div className="grid gap-3 sm:grid-cols-2">
                 {fields.map((field) => (
                   <div key={field.key} className="min-w-0">
                     <label
@@ -574,7 +574,7 @@ export default function ClassManagement() {
                       }
                       placeholder={field.placeholder}
                       required={field.required}
-                      className="input-field min-h-11 rounded-xl"
+                      className="input-field min-h-11 rounded-md"
                     />
                   </div>
                 ))}
@@ -593,7 +593,7 @@ export default function ClassManagement() {
                     onChange={(event) =>
                       update("semester", event.target.value)
                     }
-                    className="input-field min-h-11 rounded-xl"
+                    className="input-field min-h-11 rounded-md"
                   >
                     <option value="">
                       Belum ditentukan
@@ -615,14 +615,14 @@ export default function ClassManagement() {
                 <button
                   type="button"
                   onClick={closeForm}
-                  className="btn-outline rounded-xl text-xs"
+                  className="btn-outline rounded-md text-xs"
                 >
                   Batal
                 </button>
 
                 <button
                   type="submit"
-                  className="btn-primary rounded-xl text-xs"
+                  className="btn-primary rounded-md text-xs"
                 >
                   {saving ? "Menyimpan..." : "Simpan Kelas"}
                 </button>
@@ -632,15 +632,15 @@ export default function ClassManagement() {
         </section>
       )}
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/20">
-        <div className="space-y-5 border-b border-slate-100 p-5 sm:p-6">
+      <section className="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-none shadow-slate-200/20">
+        <div className="space-y-5 border-b border-slate-100 p-4 sm:p-4">
           <div className="flex items-center gap-3">
             <span
               aria-hidden="true"
               className="h-6 w-1 rounded-full bg-secondary"
             />
 
-            <h2 className="font-heading text-lg font-extrabold text-primary">
+            <h2 className="font-heading text-lg font-bold text-primary">
               Daftar Kelas
             </h2>
           </div>
@@ -662,7 +662,7 @@ export default function ClassManagement() {
                   setSearch(event.target.value)
                 }
                 placeholder="Kode, nama kelas, prodi, atau Komting..."
-                className="input-field min-h-11 rounded-xl"
+                className="input-field min-h-11 rounded-md"
               />
             </div>
 
@@ -682,7 +682,7 @@ export default function ClassManagement() {
                     event.target.value as StatusFilter,
                   )
                 }
-                className="input-field min-h-11 rounded-xl"
+                className="input-field min-h-11 rounded-md"
               >
                 <option value="all">Semua Status</option>
                 <option value="active">Aktif</option>
@@ -705,7 +705,7 @@ export default function ClassManagement() {
           </p>
         ) : filteredClasses.length === 0 ? (
           <div className="p-12 text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-primary">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100 text-primary">
               <ClassIcon className="h-7 w-7" />
             </span>
 
@@ -723,7 +723,7 @@ export default function ClassManagement() {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="btn-outline mt-5 rounded-xl text-xs"
+                className="btn-outline mt-5 rounded-md text-xs"
               >
                 Reset Filter
               </button>
@@ -813,7 +813,7 @@ export default function ClassManagement() {
                         <div className="flex items-center gap-3">
                           <span
                             aria-hidden="true"
-                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[10px] font-bold text-primary"
+                            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-slate-100 text-[10px] font-bold text-primary"
                           >
                             {initials(item.komting.full_name)}
                           </span>

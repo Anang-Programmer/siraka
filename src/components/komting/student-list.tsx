@@ -316,14 +316,14 @@ export default function StudentList() {
   ];
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
             Workspace / Keanggotaan Kelas
           </p>
 
-          <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
+          <h1 className="mt-2 font-heading text-2xl font-bold text-primary sm:text-2xl">
             Daftar Mahasiswa
           </h1>
 
@@ -337,15 +337,15 @@ export default function StudentList() {
           type="button"
           onClick={() => void refreshStudents()}
           disabled={loading || busyStudentId !== null}
-          className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
+          className="btn-outline w-fit shrink-0 rounded-md text-xs shadow-none"
         >
           {loading ? "Memuat..." : "↻ Muat Ulang"}
         </button>
       </section>
 
-      <section className="flex flex-col justify-between gap-4 rounded-3xl border border-slate-200/80 bg-white p-5 sm:flex-row sm:items-center sm:p-6">
+      <section className="flex flex-col justify-between gap-4 rounded-lg border border-slate-200/80 bg-white p-4 sm:flex-row sm:items-center sm:p-4">
         <div className="flex items-start gap-4">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-primary">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-primary">
             <UsersIcon className="h-6 w-6" />
           </span>
 
@@ -354,7 +354,7 @@ export default function StudentList() {
               Kelas yang Dikoordinasikan
             </p>
 
-            <h2 className="mt-2 font-heading text-lg font-extrabold text-primary">
+            <h2 className="mt-2 font-heading text-lg font-bold text-primary">
               {ready
                 ? classInfo?.class_name || "Kelas belum tersedia"
                 : "—"}
@@ -383,7 +383,7 @@ export default function StudentList() {
       {loadError && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
         >
           {loadError}
         </p>
@@ -392,7 +392,7 @@ export default function StudentList() {
       {actionError && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
         >
           {actionError}
         </p>
@@ -401,7 +401,7 @@ export default function StudentList() {
       {success && (
         <div
           role="status"
-          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-7 text-emerald-700"
+          className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm leading-7 text-emerald-700"
         >
           <p>{success}</p>
 
@@ -421,19 +421,19 @@ export default function StudentList() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 sm:p-6"
+            className="rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20 sm:p-4"
           >
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-xs font-semibold text-muted">
                 {stat.label}
               </h2>
 
-              <span className={`rounded-xl p-2 ${stat.color}`}>
+              <span className={`rounded-md p-2 ${stat.color}`}>
                 <UsersIcon className="h-4 w-4" />
               </span>
             </div>
 
-            <p className="mt-4 font-heading text-4xl font-extrabold text-primary">
+            <p className="mt-4 font-heading text-3xl font-bold text-primary">
               {ready ? stat.value : "—"}
             </p>
 
@@ -444,8 +444,8 @@ export default function StudentList() {
         ))}
       </section>
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/20">
-        <div className="space-y-5 border-b border-slate-100 p-5 sm:p-6">
+      <section className="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-none shadow-slate-200/20">
+        <div className="space-y-5 border-b border-slate-100 p-4 sm:p-4">
           <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
             <div>
               <div className="flex items-center gap-3">
@@ -454,7 +454,7 @@ export default function StudentList() {
                   className="h-6 w-1 rounded-full bg-secondary"
                 />
 
-                <h2 className="font-heading text-lg font-extrabold text-primary">
+                <h2 className="font-heading text-lg font-bold text-primary">
                   Anggota Kelas
                 </h2>
               </div>
@@ -495,7 +495,7 @@ export default function StudentList() {
                     setSearch(event.target.value)
                   }
                   placeholder="Cari nama atau NIM..."
-                  className="input-field min-h-11 rounded-xl pl-11"
+                  className="input-field min-h-11 rounded-md pl-11"
                 />
               </div>
             </div>
@@ -505,7 +505,7 @@ export default function StudentList() {
             <div
               role="group"
               aria-label="Filter status mahasiswa"
-              className="flex w-fit flex-wrap gap-1 rounded-2xl bg-slate-100 p-1"
+              className="flex w-fit flex-wrap gap-1 rounded-lg bg-slate-100 p-1"
             >
               {filterOptions.map((option) => {
                 const count =
@@ -521,9 +521,9 @@ export default function StudentList() {
                     type="button"
                     onClick={() => setFilter(option.value)}
                     aria-pressed={filter === option.value}
-                    className={`inline-flex min-h-10 items-center gap-2 rounded-xl px-3 py-2 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-primary ${
+                    className={`inline-flex min-h-10 items-center gap-2 rounded-md px-3 py-2 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-primary ${
                       filter === option.value
-                        ? "bg-white text-primary shadow-sm"
+                        ? "bg-white text-primary shadow-none"
                         : "text-muted hover:bg-white/70 hover:text-primary"
                     }`}
                   >
@@ -568,7 +568,7 @@ export default function StudentList() {
           </p>
         ) : filteredStudents.length === 0 ? (
           <div className="p-12 text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-primary">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100 text-primary">
               <UsersIcon className="h-7 w-7" />
             </span>
 
@@ -588,7 +588,7 @@ export default function StudentList() {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="btn-outline mt-5 rounded-xl text-xs"
+                className="btn-outline mt-5 rounded-md text-xs"
               >
                 Reset Filter
               </button>
@@ -649,7 +649,7 @@ export default function StudentList() {
                       <div className="flex items-center gap-3">
                         <span
                           aria-hidden="true"
-                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-[11px] font-bold text-primary"
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-slate-100 text-[11px] font-bold text-primary"
                         >
                           {getInitials(student.full_name)}
                         </span>
@@ -705,7 +705,7 @@ export default function StudentList() {
                             ? "Nonaktifkan"
                             : "Aktifkan kembali"
                         } akun ${student.full_name}`}
-                        className={`inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-xl border px-3 py-2 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50 ${
+                        className={`inline-flex min-h-10 items-center justify-center whitespace-nowrap rounded-md border px-3 py-2 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50 ${
                           student.is_active
                             ? "border-amber-200 text-amber-800 hover:bg-amber-50"
                             : "border-emerald-200 text-emerald-700 hover:bg-emerald-50"
@@ -726,7 +726,7 @@ export default function StudentList() {
         )}
       </section>
 
-      <section className="flex items-start gap-3 rounded-2xl border border-dashed border-slate-300 bg-white p-5">
+      <section className="flex items-start gap-3 rounded-lg border border-dashed border-slate-300 bg-white p-4">
         <span
           aria-hidden="true"
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-sm font-bold text-primary"

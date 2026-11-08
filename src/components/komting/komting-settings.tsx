@@ -68,7 +68,7 @@ function PasswordField({
           minLength={minLength}
           disabled={disabled}
           required
-          className="input-field min-h-12 rounded-xl pr-12"
+          className="input-field min-h-12 rounded-md pr-12"
         />
 
         <button
@@ -377,14 +377,14 @@ export default function KomtingSettings() {
   ];
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
             Workspace / Akun Komting
           </p>
 
-          <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
+          <h1 className="mt-2 font-heading text-2xl font-bold text-primary sm:text-2xl">
             Pengaturan Akun
           </h1>
 
@@ -397,7 +397,7 @@ export default function KomtingSettings() {
           type="button"
           onClick={() => void refreshProfile()}
           disabled={loading || savingPassword}
-          className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
+          className="btn-outline w-fit shrink-0 rounded-md text-xs shadow-none"
         >
           {loading ? "Memuat..." : "↻ Muat Ulang"}
         </button>
@@ -406,26 +406,26 @@ export default function KomtingSettings() {
       {loadError && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
         >
           {loadError}
         </p>
       )}
 
-      <div className="grid items-start gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
+      <div className="grid items-start gap-4 xl:grid-cols-[300px_minmax(0,1fr)]">
         <aside className="space-y-5">
-          <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/20">
+          <section className="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-none shadow-slate-200/20">
             <div className="h-24 bg-[#173A56]" />
 
-            <div className="px-6 pb-6">
+            <div className="px-4 pb-6">
               <div
                 aria-hidden="true"
-                className="relative -mt-9 flex h-20 w-20 items-center justify-center rounded-3xl border-[6px] border-white bg-slate-100 font-heading text-xl font-extrabold text-primary"
+                className="relative -mt-9 flex h-20 w-20 items-center justify-center rounded-lg border-[6px] border-white bg-slate-100 font-heading text-xl font-bold text-primary"
               >
                 {ready ? initials : "—"}
               </div>
 
-              <h2 className="mt-4 break-words font-heading text-lg font-extrabold text-primary">
+              <h2 className="mt-4 break-words font-heading text-lg font-bold text-primary">
                 {ready ? name : "Memuat profil..."}
               </h2>
 
@@ -460,7 +460,7 @@ export default function KomtingSettings() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-dashed border-slate-300 bg-white p-5">
+          <section className="rounded-lg border border-dashed border-slate-300 bg-white p-4">
             <h2 className="text-xs font-bold text-primary">
               Informasi Profil
             </h2>
@@ -474,9 +474,9 @@ export default function KomtingSettings() {
         </aside>
 
         <div className="min-w-0 space-y-6">
-          <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/20">
-            <div className="border-b border-slate-100 p-5 sm:p-6">
-              <h2 className="font-heading text-base font-extrabold text-primary">
+          <section className="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-none shadow-slate-200/20">
+            <div className="border-b border-slate-100 p-4 sm:p-4">
+              <h2 className="font-heading text-base font-bold text-primary">
                 Profil Saya
               </h2>
 
@@ -488,16 +488,16 @@ export default function KomtingSettings() {
             {loading ? (
               <p
                 role="status"
-                className="p-8 text-center text-sm text-muted"
+                className="p-5 text-center text-sm text-muted"
               >
                 Memuat informasi profil...
               </p>
             ) : !ready ? (
-              <p className="p-8 text-center text-sm text-muted">
+              <p className="p-5 text-center text-sm text-muted">
                 Profil belum dapat ditampilkan. Silakan muat ulang.
               </p>
             ) : (
-              <dl className="grid gap-6 p-5 sm:grid-cols-2 sm:p-6">
+              <dl className="grid gap-4 p-4 sm:grid-cols-2 sm:p-4">
                 {profileFields.map((field) => (
                   <div key={field.label} className="min-w-0">
                     <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted">
@@ -525,14 +525,14 @@ export default function KomtingSettings() {
             )}
           </section>
 
-          <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/20">
-            <div className="flex items-start gap-3 border-b border-slate-100 p-5 sm:p-6">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-primary">
+          <section className="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-none shadow-slate-200/20">
+            <div className="flex items-start gap-3 border-b border-slate-100 p-4 sm:p-4">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-slate-100 text-primary">
                 <LockIcon />
               </span>
 
               <div>
-                <h2 className="font-heading text-base font-extrabold text-primary">
+                <h2 className="font-heading text-base font-bold text-primary">
                   Ubah Kata Sandi
                 </h2>
 
@@ -545,12 +545,12 @@ export default function KomtingSettings() {
             <form
               onSubmit={handlePasswordUpdate}
               aria-busy={savingPassword}
-              className="space-y-5 p-5 sm:p-6"
+              className="space-y-5 p-4 sm:p-4"
             >
               {passwordError && (
                 <p
                   role="alert"
-                  className="rounded-xl border border-red-200 bg-red-50 p-4 text-xs leading-7 text-red-700"
+                  className="rounded-md border border-red-200 bg-red-50 p-4 text-xs leading-7 text-red-700"
                 >
                   {passwordError}
                 </p>
@@ -559,7 +559,7 @@ export default function KomtingSettings() {
               {passwordSuccess && (
                 <p
                   role="status"
-                  className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs leading-7 text-emerald-700"
+                  className="rounded-md border border-emerald-200 bg-emerald-50 p-4 text-xs leading-7 text-emerald-700"
                 >
                   {passwordSuccess}
                 </p>
@@ -575,7 +575,7 @@ export default function KomtingSettings() {
                 disabled={!ready || savingPassword}
               />
 
-              <div className="grid gap-5 md:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2">
                 <PasswordField
                   id="new-password"
                   label="Kata sandi baru"
@@ -608,7 +608,7 @@ export default function KomtingSettings() {
                 <button
                   type="submit"
                   disabled={!ready || savingPassword}
-                  className="btn-primary shrink-0 rounded-xl text-xs"
+                  className="btn-primary shrink-0 rounded-md text-xs"
                 >
                   {savingPassword
                     ? "Menyimpan..."

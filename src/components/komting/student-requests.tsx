@@ -396,14 +396,14 @@ export default function StudentRequestInbox() {
   ];
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
             Workspace / Koordinasi Kelas
           </p>
 
-          <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
+          <h1 className="mt-2 font-heading text-2xl font-bold text-primary sm:text-2xl">
             Pengajuan Mahasiswa
           </h1>
 
@@ -417,7 +417,7 @@ export default function StudentRequestInbox() {
           type="button"
           onClick={() => void refreshRequests()}
           disabled={loading || busyId !== null}
-          className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
+          className="btn-outline w-fit shrink-0 rounded-md text-xs shadow-none"
         >
           {loading ? "Memuat..." : "↻ Muat Ulang"}
         </button>
@@ -426,7 +426,7 @@ export default function StudentRequestInbox() {
       {loadError && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
         >
           {loadError}
         </p>
@@ -435,7 +435,7 @@ export default function StudentRequestInbox() {
       {actionError && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
         >
           {actionError}
         </p>
@@ -444,7 +444,7 @@ export default function StudentRequestInbox() {
       {success && (
         <div
           role="status"
-          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-7 text-emerald-700"
+          className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm leading-7 text-emerald-700"
         >
           <p>{success}</p>
 
@@ -464,26 +464,26 @@ export default function StudentRequestInbox() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 sm:p-6"
+            className="rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20 sm:p-4"
           >
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-xs font-semibold text-muted">
                 {stat.label}
               </h2>
 
-              <span className={`rounded-xl p-2 ${stat.color}`}>
+              <span className={`rounded-md p-2 ${stat.color}`}>
                 <InboxIcon className="h-4 w-4" />
               </span>
             </div>
 
-            <p className="mt-4 font-heading text-4xl font-extrabold text-primary">
+            <p className="mt-4 font-heading text-3xl font-bold text-primary">
               {ready ? stat.value : "—"}
             </p>
           </div>
         ))}
       </section>
 
-      <section className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-6">
+      <section className="space-y-5 rounded-lg border border-slate-200/80 bg-white p-4 sm:p-4">
         <div>
           <label
             htmlFor="student-request-search"
@@ -498,7 +498,7 @@ export default function StudentRequestInbox() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Cari kegiatan, nama mahasiswa, atau NIM..."
-            className="input-field min-h-11 rounded-xl"
+            className="input-field min-h-11 rounded-md"
           />
         </div>
 
@@ -507,7 +507,7 @@ export default function StudentRequestInbox() {
             Status pengajuan
           </legend>
 
-          <div className="flex w-fit max-w-full flex-wrap gap-1 rounded-2xl bg-slate-100 p-1">
+          <div className="flex w-fit max-w-full flex-wrap gap-1 rounded-lg bg-slate-100 p-1">
             {filterOptions.map((option) => (
               <button
                 key={option.value}
@@ -520,9 +520,9 @@ export default function StudentRequestInbox() {
                     setReview(null);
                   }
                 }}
-                className={`min-h-10 rounded-xl px-3 py-2 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-primary ${
+                className={`min-h-10 rounded-md px-3 py-2 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-primary ${
                   filter === option.value
-                    ? "bg-white text-primary shadow-sm"
+                    ? "bg-white text-primary shadow-none"
                     : "text-muted hover:bg-white/70 hover:text-primary"
                 }`}
               >
@@ -541,7 +541,7 @@ export default function StudentRequestInbox() {
               className="h-6 w-1 rounded-full bg-secondary"
             />
 
-            <h2 className="font-heading text-lg font-extrabold text-primary">
+            <h2 className="font-heading text-lg font-bold text-primary">
               Kotak Masuk
             </h2>
           </div>
@@ -559,7 +559,7 @@ export default function StudentRequestInbox() {
         {loading ? (
           <div
             role="status"
-            className="rounded-3xl border border-slate-200 bg-white p-12 text-center"
+            className="rounded-lg border border-slate-200 bg-white p-12 text-center"
           >
             <div
               aria-hidden="true"
@@ -571,12 +571,12 @@ export default function StudentRequestInbox() {
             </p>
           </div>
         ) : loadError ? (
-          <p className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-sm text-muted">
+          <p className="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm text-muted">
             Daftar belum dapat dimuat. Silakan tekan Muat Ulang.
           </p>
         ) : filteredRequests.length === 0 ? (
-          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-primary">
+          <div className="rounded-lg border border-slate-200 bg-white p-12 text-center">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100 text-primary">
               <InboxIcon className="h-7 w-7" />
             </span>
 
@@ -614,19 +614,19 @@ export default function StudentRequestInbox() {
               return (
                 <article
                   key={request.id}
-                  className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/20"
+                  className="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-none shadow-slate-200/20"
                 >
-                  <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-start sm:p-6">
+                  <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-4 sm:flex-row sm:items-start sm:p-4">
                     <div className="flex min-w-0 items-start gap-3">
                       <div
                         aria-hidden="true"
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-xs font-bold text-primary"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-xs font-bold text-primary"
                       >
                         {initials}
                       </div>
 
                       <div className="min-w-0">
-                        <h3 className="break-words font-heading text-base font-extrabold text-primary">
+                        <h3 className="break-words font-heading text-base font-bold text-primary">
                           {request.activity_title}
                         </h3>
 
@@ -657,7 +657,7 @@ export default function StudentRequestInbox() {
                     </span>
                   </div>
 
-                  <div className="space-y-5 p-5 sm:p-6">
+                  <div className="space-y-5 p-4 sm:p-4">
                     <p className="text-[10px] text-muted">
                       Dikirim {dateTimeLabel(request.created_at)}
                     </p>
@@ -666,7 +666,7 @@ export default function StudentRequestInbox() {
                       {request.purpose}
                     </p>
 
-                    <dl className="grid gap-4 rounded-2xl border border-slate-200 p-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <dl className="grid gap-4 rounded-lg border border-slate-200 p-4 sm:grid-cols-2 xl:grid-cols-4">
                       {[
                         {
                           label: "Tanggal",
@@ -751,7 +751,7 @@ export default function StudentRequestInbox() {
                     )}
 
                     {request.response_note && (
-                      <div className="rounded-2xl border border-slate-200 p-4">
+                      <div className="rounded-lg border border-slate-200 p-4">
                         <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
                           Respons Komting
                         </p>
@@ -771,7 +771,7 @@ export default function StudentRequestInbox() {
 
                         <Link
                           href="/dashboard/komting/bookings/new"
-                          className="btn-outline shrink-0 rounded-xl text-xs"
+                          className="btn-outline shrink-0 rounded-md text-xs"
                         >
                           Ajukan Booking →
                         </Link>
@@ -787,7 +787,7 @@ export default function StudentRequestInbox() {
                               openReview(request, "rejected")
                             }
                             disabled={busyId !== null || loading}
-                            className="inline-flex min-h-11 items-center justify-center rounded-xl border border-red-200 px-4 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                            className="inline-flex min-h-11 items-center justify-center rounded-md border border-red-200 px-4 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                           >
                             Tolak
                           </button>
@@ -801,7 +801,7 @@ export default function StudentRequestInbox() {
                               )
                             }
                             disabled={busyId !== null || loading}
-                            className="btn-primary rounded-xl text-xs"
+                            className="btn-primary rounded-md text-xs"
                           >
                             Terima &amp; Tindaklanjuti
                           </button>
@@ -816,7 +816,7 @@ export default function StudentRequestInbox() {
                             void submitReview(event, request)
                           }
                           aria-busy={busyId === request.id}
-                          className="rounded-2xl border border-slate-200 p-4 sm:p-5"
+                          className="rounded-lg border border-slate-200 p-4 sm:p-4"
                         >
                           <h4 className="text-sm font-bold text-primary">
                             {review.decision === "rejected"
@@ -861,7 +861,7 @@ export default function StudentRequestInbox() {
                                 ? "Jelaskan alasan penolakan..."
                                 : "Contoh: Akan dikoordinasikan dengan jadwal kelas."
                             }
-                            className="input-field resize-y rounded-xl"
+                            className="input-field resize-y rounded-md"
                           />
 
                           <div className="mt-4 flex flex-wrap justify-end gap-2">
@@ -869,7 +869,7 @@ export default function StudentRequestInbox() {
                               type="button"
                               onClick={() => setReview(null)}
                               disabled={busyId !== null}
-                              className="btn-outline rounded-xl text-xs"
+                              className="btn-outline rounded-md text-xs"
                             >
                               Batal
                             </button>
@@ -879,8 +879,8 @@ export default function StudentRequestInbox() {
                               disabled={busyId !== null}
                               className={
                                 review.decision === "rejected"
-                                  ? "btn-danger rounded-xl text-xs"
-                                  : "btn-primary rounded-xl text-xs"
+                                  ? "btn-danger rounded-md text-xs"
+                                  : "btn-primary rounded-md text-xs"
                               }
                             >
                               {busyId === request.id
