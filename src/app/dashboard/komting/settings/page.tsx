@@ -11,7 +11,7 @@ async function KomtingSettingsContent() {
 
 export default function KomtingSettingsPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-sm text-slate-500">Memuat pengaturan...</div>}>
+    <Suspense fallback={<div className="p-5 text-sm text-slate-500">Memuat pengaturan...</div>}>
       <KomtingSettingsContent />
     </Suspense>
   );

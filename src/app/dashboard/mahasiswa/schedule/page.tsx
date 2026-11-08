@@ -192,9 +192,9 @@ function roomStatus(
 }
 
 function filterClass(active: boolean) {
-  return `min-h-10 rounded-xl px-3 py-2 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
+  return `min-h-10 rounded-md px-3 py-2 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary ${
     active
-      ? "bg-white text-primary shadow-sm"
+      ? "bg-white text-primary shadow-none"
       : "text-muted hover:bg-white/70 hover:text-primary"
   }`;
 }
@@ -472,14 +472,14 @@ export default function MahasiswaSchedulePage() {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
             Workspace / Jadwal Ruangan
           </p>
 
-          <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
+          <h1 className="mt-2 font-heading text-2xl font-bold text-primary sm:text-2xl">
             Jadwal &amp; Ketersediaan
           </h1>
 
@@ -492,16 +492,16 @@ export default function MahasiswaSchedulePage() {
           type="button"
           onClick={() => void refreshSchedule()}
           disabled={loading || !validDate}
-          className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
+          className="btn-outline w-fit shrink-0 rounded-md text-xs shadow-none"
         >
           {loading ? "Memuat..." : "↻ Muat Ulang"}
         </button>
       </section>
 
-      <section className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/30 sm:p-6">
-        <div className="flex flex-col justify-between gap-5 lg:flex-row lg:items-center">
+      <section className="rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/30 sm:p-4">
+        <div className="flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
           <div className="flex items-center gap-4">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-primary">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-primary">
               <CalendarIcon className="h-6 w-6" />
             </span>
 
@@ -528,14 +528,14 @@ export default function MahasiswaSchedulePage() {
               onChange={(event) =>
                 changeDate(event.target.value)
               }
-              className="input-field min-h-11 w-auto max-w-full rounded-xl"
+              className="input-field min-h-11 w-auto max-w-full rounded-md"
             />
 
             <button
               type="button"
               onClick={() => changeDate(null)}
               disabled={!today || date === today}
-              className="btn-outline rounded-xl text-xs"
+              className="btn-outline rounded-md text-xs"
             >
               Hari Ini
             </button>
@@ -546,7 +546,7 @@ export default function MahasiswaSchedulePage() {
       {error && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700"
         >
           {error}
         </p>
@@ -555,7 +555,7 @@ export default function MahasiswaSchedulePage() {
       {ready && warning && (
         <p
           role="status"
-          className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-6 text-amber-800"
+          className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs leading-6 text-amber-800"
         >
           {warning}
         </p>
@@ -568,19 +568,19 @@ export default function MahasiswaSchedulePage() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20"
+            className="rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20"
           >
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-xs font-semibold text-muted">
                 {stat.label}
               </h2>
 
-              <span className={`rounded-xl p-2 ${stat.color}`}>
+              <span className={`rounded-md p-2 ${stat.color}`}>
                 <CalendarIcon className="h-4 w-4" />
               </span>
             </div>
 
-            <p className="mt-4 font-heading text-4xl font-extrabold text-primary">
+            <p className="mt-4 font-heading text-3xl font-bold text-primary">
               {ready ? stat.value : "—"}
             </p>
 
@@ -591,7 +591,7 @@ export default function MahasiswaSchedulePage() {
         ))}
       </section>
 
-      <section className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 sm:p-6">
+      <section className="space-y-5 rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20 sm:p-4">
         <div>
           <label
             htmlFor="schedule-search"
@@ -620,18 +620,18 @@ export default function MahasiswaSchedulePage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Cari kode, nama, gedung, atau fasilitas..."
-              className="input-field min-h-11 rounded-xl pl-11"
+              className="input-field min-h-11 rounded-md pl-11"
             />
           </div>
         </div>
 
-        <div className="grid gap-5 xl:grid-cols-2">
+        <div className="grid gap-3 xl:grid-cols-2">
           <fieldset className="min-w-0">
             <legend className="mb-3 text-xs font-bold text-primary">
               Jenis ruangan
             </legend>
 
-            <div className="flex w-fit max-w-full flex-wrap gap-1 rounded-2xl bg-slate-100 p-1">
+            <div className="flex w-fit max-w-full flex-wrap gap-1 rounded-lg bg-slate-100 p-1">
               {roomOptions.map((item) => (
                 <button
                   key={item.value}
@@ -653,7 +653,7 @@ export default function MahasiswaSchedulePage() {
               Status ketersediaan
             </legend>
 
-            <div className="flex w-fit max-w-full flex-wrap gap-1 rounded-2xl bg-slate-100 p-1">
+            <div className="flex w-fit max-w-full flex-wrap gap-1 rounded-lg bg-slate-100 p-1">
               {statusOptions.map((item) => (
                 <button
                   key={item.value}
@@ -691,13 +691,13 @@ export default function MahasiswaSchedulePage() {
       </section>
 
       {ready && classBookings.length > 0 && (
-        <section className="rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-6">
+        <section className="rounded-lg border border-slate-200/80 bg-white p-4 sm:p-4">
           <div className="flex items-center gap-3">
             <span
               aria-hidden="true"
               className="h-6 w-1 rounded-full bg-secondary"
             />
-            <h2 className="font-heading text-base font-extrabold text-primary">
+            <h2 className="font-heading text-base font-bold text-primary">
               Jadwal Kelas Anda
             </h2>
           </div>
@@ -715,7 +715,7 @@ export default function MahasiswaSchedulePage() {
               return (
                 <article
                   key={booking.id}
-                  className="rounded-2xl border border-slate-200 p-4"
+                  className="rounded-lg border border-slate-200 p-4"
                 >
                   <h3 className="break-words text-sm font-bold text-primary">
                     {booking.title}
@@ -749,7 +749,7 @@ export default function MahasiswaSchedulePage() {
               className="h-6 w-1 rounded-full bg-secondary"
             />
 
-            <h2 className="font-heading text-lg font-extrabold text-primary">
+            <h2 className="font-heading text-lg font-bold text-primary">
               Ketersediaan Ruangan
             </h2>
           </div>
@@ -767,7 +767,7 @@ export default function MahasiswaSchedulePage() {
         {!today || loading ? (
           <div
             role="status"
-            className="rounded-3xl border border-slate-200 bg-white p-12 text-center"
+            className="rounded-lg border border-slate-200 bg-white p-12 text-center"
           >
             <div
               aria-hidden="true"
@@ -779,11 +779,11 @@ export default function MahasiswaSchedulePage() {
             </p>
           </div>
         ) : !validDate ? (
-          <p className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-sm text-muted">
+          <p className="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm text-muted">
             Pilih tanggal yang valid untuk melihat jadwal.
           </p>
         ) : error ? (
-          <p className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-sm text-muted">
+          <p className="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm text-muted">
             Data belum dapat dimuat. Silakan tekan Muat Ulang.
           </p>
         ) : !ready ? (
@@ -791,7 +791,7 @@ export default function MahasiswaSchedulePage() {
             Menyiapkan jadwal...
           </p>
         ) : filteredRooms.length === 0 ? (
-          <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center">
+          <div className="rounded-lg border border-slate-200 bg-white p-10 text-center">
             <h3 className="text-sm font-bold text-primary">
               {hasFilter
                 ? "Ruangan tidak ditemukan"
@@ -808,14 +808,14 @@ export default function MahasiswaSchedulePage() {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="btn-outline mt-5 rounded-xl text-xs"
+                className="btn-outline mt-5 rounded-md text-xs"
               >
                 Reset Filter
               </button>
             )}
           </div>
         ) : (
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid gap-3 md:grid-cols-2">
             {filteredRooms.map(
               ({ room, schedules, status }) => {
                 const info = statusConfig[status];
@@ -823,7 +823,7 @@ export default function MahasiswaSchedulePage() {
                 return (
                   <article
                     key={room.id}
-                    className="min-w-0 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 transition hover:border-secondary/40 sm:p-6"
+                    className="min-w-0 rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20 transition hover:border-secondary/40 sm:p-4"
                   >
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <span className="rounded-lg bg-slate-100 px-3 py-1.5 text-[10px] font-bold text-primary">
@@ -847,7 +847,7 @@ export default function MahasiswaSchedulePage() {
                       {room.room_code}
                     </p>
 
-                    <h3 className="mt-2 break-words font-heading text-xl font-extrabold text-primary">
+                    <h3 className="mt-2 break-words font-heading text-xl font-bold text-primary">
                       {room.room_name}
                     </h3>
 
@@ -879,7 +879,7 @@ export default function MahasiswaSchedulePage() {
                       </div>
 
                       {schedules.length === 0 ? (
-                        <div className="mt-3 rounded-2xl border border-dashed border-slate-200 bg-white p-5 text-center">
+                        <div className="mt-3 rounded-lg border border-dashed border-slate-200 bg-white p-4 text-center">
                           <CalendarIcon className="mx-auto h-6 w-6 text-slate-400" />
 
                           <p className="mt-3 text-xs font-semibold text-primary">
@@ -912,7 +912,7 @@ export default function MahasiswaSchedulePage() {
                             return (
                               <li
                                 key={`${item.starts_at}-${item.ends_at}-${index}`}
-                                className="flex items-start gap-3 rounded-2xl border border-slate-200 bg-white p-3"
+                                className="flex items-start gap-3 rounded-lg border border-slate-200 bg-white p-3"
                               >
                                 <span
                                   aria-hidden="true"
@@ -994,7 +994,7 @@ export default function MahasiswaSchedulePage() {
         )}
       </section>
 
-      <section className="rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-6">
+      <section className="rounded-lg border border-slate-200/80 bg-white p-4 sm:p-4">
         <h2 className="text-sm font-bold text-primary">
           Memahami Status Ruangan
         </h2>

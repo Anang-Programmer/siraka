@@ -16,7 +16,7 @@ export default function AdminLayout({
   children: ReactNode;
 }) {
   return (
-    <Suspense fallback={<p role="status" className="p-6">Memuat dashboard...</p>}>
+    <Suspense fallback={<p role="status" className="p-4">Memuat dashboard...</p>}>
       <ProtectedAdminShell>{children}</ProtectedAdminShell>
     </Suspense>
   );

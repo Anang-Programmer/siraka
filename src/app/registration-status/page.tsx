@@ -188,7 +188,7 @@ async function RegistrationStatusContent() {
     <main className="flex min-h-screen items-center justify-center bg-[#F3F6FA] px-4 py-10 sm:py-14">
       <div className="w-full max-w-xl">
         <div className="mb-7 flex items-center justify-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white p-2 shadow-sm">
+          <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-white p-2 shadow-none">
             <Image
               src="/images/logo/logo.png"
               alt="Logo SIRAKA"
@@ -200,7 +200,7 @@ async function RegistrationStatusContent() {
           </div>
 
           <div>
-            <p className="font-heading text-xl font-extrabold tracking-[0.08em] text-primary">
+            <p className="font-heading text-xl font-bold tracking-[0.08em] text-primary">
               SIRAKA
             </p>
 
@@ -210,8 +210,8 @@ async function RegistrationStatusContent() {
           </div>
         </div>
 
-        <section className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white shadow-xl shadow-slate-200/40">
-          <div className="relative overflow-hidden bg-[#173A56] p-6 text-white sm:p-8">
+        <section className="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-xl shadow-slate-200/40">
+          <div className="relative overflow-hidden bg-[#173A56] p-4 text-white sm:p-5">
             <div
               aria-hidden="true"
               className="pointer-events-none absolute -right-14 -top-20 h-64 w-64 rounded-full border border-white/10"
@@ -223,15 +223,15 @@ async function RegistrationStatusContent() {
             />
 
             <div className="relative">
-              <span className="inline-flex rounded-2xl bg-white/10 p-3 text-cyan-100">
+              <span className="inline-flex rounded-lg bg-white/10 p-3 text-cyan-100">
                 <StatusIcon />
               </span>
 
-              <p className="mt-5 text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-100/80">
+              <p className="mt-5 text-[10px] font-bold uppercase tracking-wide text-cyan-100/80">
                 Informasi Akun
               </p>
 
-              <h1 className="mt-2 font-heading text-2xl font-extrabold">
+              <h1 className="mt-2 font-heading text-2xl font-bold">
                 Status Pendaftaran
               </h1>
 
@@ -241,7 +241,7 @@ async function RegistrationStatusContent() {
             </div>
           </div>
 
-          <div className="space-y-6 p-6 sm:p-8">
+          <div className="space-y-6 p-4 sm:p-5">
             <div>
               <span
                 className={`inline-flex rounded-full px-3 py-1.5 text-[10px] font-bold ${notice.color}`}
@@ -249,7 +249,7 @@ async function RegistrationStatusContent() {
                 {notice.badge}
               </span>
 
-              <h2 className="mt-4 font-heading text-xl font-extrabold text-primary">
+              <h2 className="mt-4 font-heading text-xl font-bold text-primary">
                 {notice.title}
               </h2>
 
@@ -259,7 +259,7 @@ async function RegistrationStatusContent() {
             </div>
 
             {request && (
-              <dl className="divide-y divide-slate-100 rounded-2xl border border-slate-200 px-4">
+              <dl className="divide-y divide-slate-100 rounded-lg border border-slate-200 px-4">
                 <div className="py-4">
                   <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted">
                     Jenis Pendaftaran
@@ -293,7 +293,7 @@ async function RegistrationStatusContent() {
             )}
 
             {!isDeactivated && request?.status === "rejected" && (
-              <div className="rounded-2xl border border-red-200 bg-white p-4">
+              <div className="rounded-lg border border-red-200 bg-white p-4">
                 <h3 className="text-xs font-bold text-red-700">
                   Alasan Penolakan
                 </h3>
@@ -308,7 +308,7 @@ async function RegistrationStatusContent() {
             <div className="border-t border-slate-100 pt-6">
               <a
                 href="/registration-status"
-                className="btn-primary w-full rounded-xl"
+                className="btn-primary w-full rounded-md"
               >
                 ↻ Periksa Status Terbaru
               </a>
@@ -340,7 +340,7 @@ export default function RegistrationStatusPage() {
         <main className="flex min-h-screen items-center justify-center bg-[#F3F6FA] px-4">
           <div
             role="status"
-            className="rounded-3xl border border-slate-200 bg-white px-8 py-10 text-center shadow-sm"
+            className="rounded-lg border border-slate-200 bg-white px-8 py-10 text-center shadow-none"
           >
             <div
               aria-hidden="true"

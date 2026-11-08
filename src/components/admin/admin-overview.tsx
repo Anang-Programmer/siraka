@@ -403,14 +403,14 @@ export default function AdminOverview() {
   ];
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
             Workspace / Ringkasan Sistem
           </p>
 
-          <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
+          <h1 className="mt-2 font-heading text-2xl font-bold text-primary sm:text-2xl">
             Dashboard Admin
           </h1>
         </div>
@@ -419,7 +419,7 @@ export default function AdminOverview() {
           type="button"
           onClick={() => void refreshDashboard()}
           disabled={loading}
-          className="btn-outline w-fit rounded-xl text-xs shadow-sm"
+          className="btn-outline w-fit rounded-md text-xs shadow-none"
         >
           <Icon
             name="refresh"
@@ -435,82 +435,15 @@ export default function AdminOverview() {
       {error && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
         >
           {error}
         </p>
       )}
 
-      <section className="relative overflow-hidden rounded-[28px] bg-[#173A56] p-6 text-white sm:p-8 lg:p-9">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(41,169,184,0.35),transparent_65%)]"
-        />
-
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-16 -top-28 h-80 w-80 rounded-full border border-white/10"
-        />
-
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-32 right-10 h-80 w-80 rounded-full border border-white/10"
-        />
-
-        <div className="relative flex flex-col justify-between gap-7 xl:flex-row xl:items-center">
-          <div className="max-w-xl">
-            <span className="inline-flex rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[10px] font-semibold text-cyan-100">
-              Pusat Pengelolaan SIRAKA
-            </span>
-
-            <h2 className="mt-5 font-heading text-2xl font-extrabold leading-tight sm:text-3xl">
-              Kelola ruang,
-              <span className="mt-1 block text-[#86E0E6]">
-                dukung setiap kegiatan.
-              </span>
-            </h2>
-
-            <p className="mt-4 max-w-lg text-xs leading-7 text-slate-200 sm:text-sm">
-              Pantau peminjaman ruangan, kelola fasilitas kampus,
-              dan koordinasikan akses pengguna melalui satu panel.
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                href="/dashboard/admin/bookings"
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#86E0E6] px-4 py-2.5 text-xs font-bold text-[#123549] transition hover:bg-cyan-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-              >
-                Tinjau Booking
-                <Icon name="arrow" className="h-4 w-4" />
-              </Link>
-
-              <Link
-                href="/dashboard/admin/rooms"
-                className="inline-flex min-h-11 items-center rounded-xl border border-white/25 px-4 py-2.5 text-xs font-semibold transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-              >
-                Kelola Ruangan
-              </Link>
-            </div>
-          </div>
-
-          <div className="w-full rounded-2xl border border-white/15 bg-white/[0.07] p-5 xl:max-w-60">
-            <span className="inline-flex rounded-xl bg-white/10 p-2.5 text-cyan-100">
-              <Icon name="clock" className="h-6 w-6" />
-            </span>
-
-            <p className="mt-4 text-[10px] font-semibold uppercase tracking-widest text-slate-300">
-              Booking Pending
-            </p>
-
-            <p className="mt-3 font-heading text-4xl font-extrabold">
-              {ready ? metrics.pending : "—"}
-            </p>
-
-            <p className="mt-2 text-xs leading-6 text-slate-300">
-              Pengajuan menunggu untuk ditinjau.
-            </p>
-          </div>
-        </div>
+      <section className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+        <p className="text-sm text-muted">Pantau pengajuan dan kelola data fasilitas kampus.</p>
+        <div className="flex flex-wrap gap-2"><Link href="/dashboard/admin/bookings" className="btn-primary">Tinjau Booking</Link><Link href="/dashboard/admin/rooms" className="btn-outline">Kelola Ruangan</Link></div>
       </section>
 
       <section>
@@ -521,7 +454,7 @@ export default function AdminOverview() {
           />
 
           <div>
-            <h2 className="font-heading text-lg font-extrabold text-primary">
+            <h2 className="font-heading text-lg font-bold text-primary">
               Ringkasan Sistem
             </h2>
 
@@ -541,7 +474,7 @@ export default function AdminOverview() {
                   </h3>
 
                   <span
-                    className={`rounded-xl p-2 ${card.color}`}
+                    className={`rounded-md p-2 ${card.color}`}
                   >
                     <Icon
                       name={card.icon}
@@ -550,7 +483,7 @@ export default function AdminOverview() {
                   </span>
                 </div>
 
-                <p className="mt-4 font-heading text-4xl font-extrabold text-primary">
+                <p className="mt-4 font-heading text-3xl font-bold text-primary">
                   {ready ? card.value : "—"}
                 </p>
 
@@ -570,7 +503,7 @@ export default function AdminOverview() {
             );
 
             const className =
-              "rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 sm:p-6";
+              "rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20 sm:p-4";
 
             return card.href ? (
               <Link
@@ -596,7 +529,7 @@ export default function AdminOverview() {
             className="h-6 w-1 rounded-full bg-secondary"
           />
 
-          <h2 className="font-heading text-lg font-extrabold text-primary">
+          <h2 className="font-heading text-lg font-bold text-primary">
             Akses Cepat
           </h2>
         </div>
@@ -606,11 +539,11 @@ export default function AdminOverview() {
             <Link
               key={action.href}
               href={action.href}
-              className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm shadow-slate-200/20 transition hover:border-secondary/40 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              className="group flex flex-col rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20 transition hover:border-secondary/40 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               <div className="flex items-center justify-between">
                 <span
-                  className={`flex h-12 w-12 items-center justify-center rounded-2xl ${action.color}`}
+                  className={`flex h-12 w-12 items-center justify-center rounded-lg ${action.color}`}
                 >
                   <Icon
                     name={action.icon}
@@ -626,7 +559,7 @@ export default function AdminOverview() {
                 </span>
               </div>
 
-              <h3 className="mt-5 font-heading text-sm font-extrabold text-primary">
+              <h3 className="mt-5 font-heading text-sm font-bold text-primary">
                 {action.title}
               </h3>
 
@@ -638,10 +571,10 @@ export default function AdminOverview() {
         </div>
       </section>
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/20">
-        <div className="flex flex-col justify-between gap-3 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:p-6">
+      <section className="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-none shadow-slate-200/20">
+        <div className="flex flex-col justify-between gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:p-4">
           <div>
-            <h2 className="font-heading text-base font-extrabold text-primary">
+            <h2 className="font-heading text-base font-bold text-primary">
               Pengajuan Terbaru
             </h2>
 
@@ -672,7 +605,7 @@ export default function AdminOverview() {
           </p>
         ) : bookings.length === 0 ? (
           <div className="p-12 text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-primary">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100 text-primary">
               <Icon name="calendar" className="h-7 w-7" />
             </span>
 
@@ -693,16 +626,16 @@ export default function AdminOverview() {
 
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/70 text-[10px] font-semibold uppercase tracking-wider text-muted">
-                  <th scope="col" className="px-6 py-4">
+                  <th scope="col" className="px-4 py-4">
                     Pengajuan
                   </th>
-                  <th scope="col" className="px-6 py-4">
+                  <th scope="col" className="px-4 py-4">
                     Jenis Booking
                   </th>
-                  <th scope="col" className="px-6 py-4">
+                  <th scope="col" className="px-4 py-4">
                     Mulai Penggunaan
                   </th>
-                  <th scope="col" className="px-6 py-4">
+                  <th scope="col" className="px-4 py-4">
                     Status
                   </th>
                 </tr>
@@ -724,7 +657,7 @@ export default function AdminOverview() {
                     >
                       <th
                         scope="row"
-                        className="max-w-xs px-6 py-5 text-left font-normal"
+                        className="max-w-xs px-4 py-5 text-left font-normal"
                       >
                         <p className="break-words text-xs font-bold leading-6 text-primary">
                           {booking.title}
@@ -736,7 +669,7 @@ export default function AdminOverview() {
                         </p>
                       </th>
 
-                      <td className="px-6 py-5">
+                      <td className="px-4 py-5">
                         <span className="whitespace-nowrap rounded-lg border border-slate-200 px-2.5 py-1.5 text-[10px] font-semibold text-primary">
                           {bookingTypeLabels[
                             booking.booking_type
@@ -744,11 +677,11 @@ export default function AdminOverview() {
                         </span>
                       </td>
 
-                      <td className="whitespace-nowrap px-6 py-5 text-xs text-muted">
+                      <td className="whitespace-nowrap px-4 py-5 text-xs text-muted">
                         {formatDateTime(booking.starts_at)}
                       </td>
 
-                      <td className="px-6 py-5">
+                      <td className="px-4 py-5">
                         <span
                           className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-1.5 text-[10px] font-semibold ${status.color}`}
                         >

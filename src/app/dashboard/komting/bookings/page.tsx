@@ -11,7 +11,7 @@ async function BookingHistoryPageContent() {
 
 export default function KomtingBookingsPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-sm text-slate-500">Memuat status booking...</div>}>
+    <Suspense fallback={<div className="p-5 text-sm text-slate-500">Memuat status booking...</div>}>
       <BookingHistoryPageContent />
     </Suspense>
   );

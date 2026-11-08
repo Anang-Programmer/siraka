@@ -11,7 +11,7 @@ async function KomtingDashboardContent() {
 
 export default function KomtingDashboardPage() {
   return (
-    <Suspense fallback={<div className="p-8 text-sm text-slate-500">Memuat dashboard Komting...</div>}>
+    <Suspense fallback={<div className="p-5 text-sm text-slate-500">Memuat dashboard Komting...</div>}>
       <KomtingDashboardContent />
     </Suspense>
   );

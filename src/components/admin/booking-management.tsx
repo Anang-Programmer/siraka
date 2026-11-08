@@ -619,14 +619,14 @@ export default function BookingManagement() {
   ];
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
             Workspace / Pengelolaan Peminjaman
           </p>
 
-          <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
+          <h1 className="mt-2 font-heading text-2xl font-bold text-primary sm:text-2xl">
             Persetujuan Booking
           </h1>
 
@@ -640,7 +640,7 @@ export default function BookingManagement() {
           type="button"
           onClick={() => void refreshBookings()}
           disabled={loading || busyId !== null}
-          className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
+          className="btn-outline w-fit shrink-0 rounded-md text-xs shadow-none"
         >
           {loading ? "Memuat..." : "↻ Muat Ulang"}
         </button>
@@ -649,7 +649,7 @@ export default function BookingManagement() {
       {loadError && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
         >
           {loadError}
         </p>
@@ -658,7 +658,7 @@ export default function BookingManagement() {
       {actionError && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
         >
           {actionError}
         </p>
@@ -667,7 +667,7 @@ export default function BookingManagement() {
       {success && (
         <div
           role="status"
-          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-7 text-emerald-700"
+          className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm leading-7 text-emerald-700"
         >
           <p>{success}</p>
 
@@ -687,26 +687,26 @@ export default function BookingManagement() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 sm:p-6"
+            className="rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20 sm:p-4"
           >
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-xs font-semibold text-muted">
                 {stat.label}
               </h2>
 
-              <span className={`rounded-xl p-2 ${stat.color}`}>
+              <span className={`rounded-md p-2 ${stat.color}`}>
                 <CalendarIcon className="h-4 w-4" />
               </span>
             </div>
 
-            <p className="mt-4 font-heading text-4xl font-extrabold text-primary">
+            <p className="mt-4 font-heading text-3xl font-bold text-primary">
               {ready ? stat.value : "—"}
             </p>
           </div>
         ))}
       </section>
 
-      <section className="space-y-5 rounded-3xl border border-slate-200/80 bg-white p-5 sm:p-6">
+      <section className="space-y-5 rounded-lg border border-slate-200/80 bg-white p-4 sm:p-4">
         <div>
           <label
             htmlFor="admin-booking-search"
@@ -721,7 +721,7 @@ export default function BookingManagement() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Kegiatan, Komting, NIM, ruangan, atau kelas..."
-            className="input-field min-h-11 rounded-xl"
+            className="input-field min-h-11 rounded-md"
           />
         </div>
 
@@ -730,16 +730,16 @@ export default function BookingManagement() {
             Status booking
           </legend>
 
-          <div className="flex w-fit max-w-full flex-wrap gap-1 rounded-2xl bg-slate-100 p-1">
+          <div className="flex w-fit max-w-full flex-wrap gap-1 rounded-lg bg-slate-100 p-1">
             {filterOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 aria-pressed={filter === option.value}
                 onClick={() => setFilter(option.value)}
-                className={`min-h-10 rounded-xl px-3 py-2 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-primary ${
+                className={`min-h-10 rounded-md px-3 py-2 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-primary ${
                   filter === option.value
-                    ? "bg-white text-primary shadow-sm"
+                    ? "bg-white text-primary shadow-none"
                     : "text-muted hover:bg-white/70 hover:text-primary"
                 }`}
               >
@@ -758,7 +758,7 @@ export default function BookingManagement() {
               className="h-6 w-1 rounded-full bg-secondary"
             />
 
-            <h2 className="font-heading text-lg font-extrabold text-primary">
+            <h2 className="font-heading text-lg font-bold text-primary">
               Daftar Pengajuan
             </h2>
           </div>
@@ -776,17 +776,17 @@ export default function BookingManagement() {
         {loading ? (
           <p
             role="status"
-            className="rounded-3xl border border-slate-200 bg-white p-12 text-center text-sm text-muted"
+            className="rounded-lg border border-slate-200 bg-white p-12 text-center text-sm text-muted"
           >
             Memuat data booking...
           </p>
         ) : loadError ? (
-          <p className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-sm text-muted">
+          <p className="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm text-muted">
             Data belum dapat dimuat. Silakan tekan Muat Ulang.
           </p>
         ) : filteredBookings.length === 0 ? (
-          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-primary">
+          <div className="rounded-lg border border-slate-200 bg-white p-12 text-center">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100 text-primary">
               <CalendarIcon className="h-7 w-7" />
             </span>
 
@@ -814,9 +814,9 @@ export default function BookingManagement() {
               return (
                 <article
                   key={booking.id}
-                  className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/20"
+                  className="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-none shadow-slate-200/20"
                 >
-                  <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-start sm:p-6">
+                  <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-4 sm:flex-row sm:items-start sm:p-4">
                     <div className="min-w-0">
                       <div className="flex flex-wrap gap-2">
                         <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-primary">
@@ -829,7 +829,7 @@ export default function BookingManagement() {
                         </span>
                       </div>
 
-                      <h3 className="mt-3 break-words font-heading text-lg font-extrabold text-primary">
+                      <h3 className="mt-3 break-words font-heading text-lg font-bold text-primary">
                         {booking.title}
                       </h3>
 
@@ -849,8 +849,8 @@ export default function BookingManagement() {
                     </span>
                   </div>
 
-                  <div className="space-y-5 p-5 sm:p-6">
-                    <dl className="grid gap-5 md:grid-cols-2">
+                  <div className="space-y-5 p-4 sm:p-4">
+                    <dl className="grid gap-3 md:grid-cols-2">
                       <div>
                         <dt className="text-[10px] font-semibold uppercase tracking-wider text-muted">
                           Pengaju / Komting
@@ -900,7 +900,7 @@ export default function BookingManagement() {
                       </div>
                     </dl>
 
-                    <dl className="grid gap-4 rounded-2xl border border-slate-200 p-4 sm:grid-cols-2 xl:grid-cols-4">
+                    <dl className="grid gap-4 rounded-lg border border-slate-200 p-4 sm:grid-cols-2 xl:grid-cols-4">
                       {[
                         {
                           label: "Mulai",
@@ -949,7 +949,7 @@ export default function BookingManagement() {
                     </div>
 
                     {booking.booking_type === "krs_priority" && (
-                      <section className="rounded-2xl border border-slate-200 p-4 sm:p-5">
+                      <section className="rounded-lg border border-slate-200 p-4 sm:p-4">
                         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                           <div>
                             <h4 className="text-sm font-bold text-primary">
@@ -985,7 +985,7 @@ export default function BookingManagement() {
                               !booking.krs?.document_path ||
                               documentBusyId !== null
                             }
-                            className="btn-outline shrink-0 rounded-xl text-xs"
+                            className="btn-outline shrink-0 rounded-md text-xs"
                           >
                             {documentBusyId === booking.id
                               ? "Membuka..."
@@ -1002,7 +1002,7 @@ export default function BookingManagement() {
                     )}
 
                     {booking.rejection_reason && (
-                      <div className="rounded-2xl border border-red-200 p-4">
+                      <div className="rounded-lg border border-red-200 p-4">
                         <h4 className="text-xs font-bold text-red-700">
                           Alasan Penolakan
                         </h4>
@@ -1014,7 +1014,7 @@ export default function BookingManagement() {
                     )}
 
                     {canReview && blocked && (
-                      <p className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-7 text-amber-800">
+                      <p className="rounded-md border border-amber-200 bg-amber-50 p-4 text-xs leading-7 text-amber-800">
                         {blocked}
                       </p>
                     )}
@@ -1027,7 +1027,7 @@ export default function BookingManagement() {
                             openReview(booking, "rejected")
                           }
                           disabled={busyId !== null || loading}
-                          className="inline-flex min-h-11 items-center justify-center rounded-xl border border-red-200 px-4 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-red-700 disabled:opacity-50"
+                          className="inline-flex min-h-11 items-center justify-center rounded-md border border-red-200 px-4 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-red-700 disabled:opacity-50"
                         >
                           Tolak Booking
                         </button>
@@ -1042,7 +1042,7 @@ export default function BookingManagement() {
                             loading ||
                             blocked !== null
                           }
-                          className="btn-primary rounded-xl text-xs"
+                          className="btn-primary rounded-md text-xs"
                         >
                           {booking.booking_type === "krs_priority"
                             ? "Verifikasi KRS & Setujui"
@@ -1057,7 +1057,7 @@ export default function BookingManagement() {
                           void submitReview(event, booking)
                         }
                         aria-busy={busyId === booking.id}
-                        className="rounded-2xl border border-slate-200 p-4 sm:p-5"
+                        className="rounded-lg border border-slate-200 p-4 sm:p-4"
                       >
                         <h4 className="text-sm font-bold text-primary">
                           {review.decision === "approved"
@@ -1099,13 +1099,13 @@ export default function BookingManagement() {
                               disabled={busyId !== null}
                               rows={3}
                               placeholder="Jelaskan alasan penolakan..."
-                              className="input-field resize-y rounded-xl"
+                              className="input-field resize-y rounded-md"
                             />
                           </div>
                         ) : booking.booking_type ===
                           "krs_priority" ? (
                           <div className="mt-4 space-y-4">
-                            <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-slate-200 p-4">
+                            <label className="flex cursor-pointer items-start gap-3 rounded-md border border-slate-200 p-4">
                               <input
                                 type="checkbox"
                                 checked={review.krsChecked}
@@ -1161,7 +1161,7 @@ export default function BookingManagement() {
                                 disabled={busyId !== null}
                                 rows={2}
                                 placeholder="Catatan pemeriksaan dokumen..."
-                                className="input-field resize-y rounded-xl"
+                                className="input-field resize-y rounded-md"
                               />
                             </div>
                           </div>
@@ -1172,7 +1172,7 @@ export default function BookingManagement() {
                             type="button"
                             onClick={() => setReview(null)}
                             disabled={busyId !== null}
-                            className="btn-outline rounded-xl text-xs"
+                            className="btn-outline rounded-md text-xs"
                           >
                             Batal
                           </button>
@@ -1195,8 +1195,8 @@ export default function BookingManagement() {
                             }
                             className={
                               review.decision === "approved"
-                                ? "btn-primary rounded-xl text-xs"
-                                : "btn-danger rounded-xl text-xs"
+                                ? "btn-primary rounded-md text-xs"
+                                : "btn-danger rounded-md text-xs"
                             }
                           >
                             {busyId === booking.id

@@ -30,7 +30,7 @@ async function ProtectedMahasiswaShell({
 
 function DashboardLoading() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white px-6">
+    <div className="flex min-h-screen items-center justify-center bg-white px-4">
       <div
         role="status"
         className="flex items-center gap-3 text-sm font-medium text-primary"

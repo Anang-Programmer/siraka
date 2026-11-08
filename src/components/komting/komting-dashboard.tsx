@@ -398,14 +398,14 @@ export default function KomtingDashboard() {
   ];
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
             Workspace / Ringkasan
           </p>
 
-          <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
+          <h1 className="mt-2 font-heading text-2xl font-bold text-primary sm:text-2xl">
             Dashboard Komting
           </h1>
         </div>
@@ -414,7 +414,7 @@ export default function KomtingDashboard() {
           type="button"
           onClick={() => void refreshDashboard()}
           disabled={loading}
-          className="btn-outline w-fit rounded-xl text-xs shadow-sm"
+          className="btn-outline w-fit rounded-md text-xs shadow-none"
         >
           <Icon
             name="refresh"
@@ -430,78 +430,15 @@ export default function KomtingDashboard() {
       {error && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
         >
           {error}
         </p>
       )}
 
-      <section className="relative overflow-hidden rounded-[28px] bg-[#173A56] p-6 text-white sm:p-8 lg:p-9">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(41,169,184,0.35),transparent_65%)]"
-        />
-
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-16 -top-28 h-80 w-80 rounded-full border border-white/10"
-        />
-
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-32 right-10 h-80 w-80 rounded-full border border-white/10"
-        />
-
-        <div className="relative flex flex-col justify-between gap-7 xl:flex-row xl:items-center">
-          <div className="max-w-xl">
-            <span className="inline-flex rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[10px] font-semibold text-cyan-100">
-              Panel Koordinasi Kelas
-            </span>
-
-            <h2 className="mt-5 break-words font-heading text-2xl font-extrabold leading-tight sm:text-3xl">
-              Selamat datang,
-              <span className="mt-1 block text-[#86E0E6]">
-                {loading ? "..." : displayName}.
-              </span>
-            </h2>
-
-            <p className="mt-4 max-w-lg text-xs leading-7 text-slate-200 sm:text-sm">
-              Kelola kebutuhan ruangan, tinjau pengajuan mahasiswa,
-              dan koordinasikan kegiatan kelas dalam satu tempat.
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                href="/dashboard/komting/bookings/new"
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#86E0E6] px-4 py-2.5 text-xs font-bold text-[#123549] transition hover:bg-cyan-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-              >
-                Ajukan Booking
-                <Icon name="arrow" className="h-4 w-4" />
-              </Link>
-
-              <Link
-                href="/dashboard/komting/student-requests"
-                className="inline-flex min-h-11 items-center rounded-xl border border-white/25 px-4 py-2.5 text-xs font-semibold transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-              >
-                Tinjau Pengajuan
-              </Link>
-            </div>
-          </div>
-
-          <div className="w-full rounded-2xl border border-white/15 bg-white/[0.07] p-5 xl:max-w-64">
-            <span className="inline-flex rounded-xl bg-white/10 p-2.5 text-cyan-100">
-              <Icon name="users" className="h-6 w-6" />
-            </span>
-
-            <p className="mt-4 text-[10px] font-semibold uppercase tracking-widest text-slate-300">
-              Kelas yang Dikoordinasikan
-            </p>
-
-            <p className="mt-3 break-words text-sm font-bold leading-7">
-              {ready ? summary.classLabel : "—"}
-            </p>
-          </div>
-        </div>
+      <section className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+        <div><p className="text-sm font-semibold text-primary">{loading ? "Memuat akun..." : displayName}</p><p className="mt-1 text-xs text-muted">{ready ? summary.classLabel : "Memuat kelas..."}</p></div>
+        <div className="flex flex-wrap gap-2"><Link href="/dashboard/komting/bookings/new" className="btn-primary">Ajukan Booking</Link><Link href="/dashboard/komting/student-requests" className="btn-outline">Pengajuan Mahasiswa</Link></div>
       </section>
 
       <section>
@@ -512,7 +449,7 @@ export default function KomtingDashboard() {
           />
 
           <div>
-            <h2 className="font-heading text-lg font-extrabold text-primary">
+            <h2 className="font-heading text-lg font-bold text-primary">
               Ringkasan Aktivitas
             </h2>
 
@@ -527,7 +464,7 @@ export default function KomtingDashboard() {
             <Link
               key={stat.label}
               href={stat.href}
-              className="group rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 transition hover:border-secondary/40 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              className="group rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20 transition hover:border-secondary/40 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               <div className="flex items-center justify-between gap-3">
                 <h3 className="text-xs font-semibold leading-5 text-muted">
@@ -535,13 +472,13 @@ export default function KomtingDashboard() {
                 </h3>
 
                 <span
-                  className={`shrink-0 rounded-xl p-2 ${stat.color}`}
+                  className={`shrink-0 rounded-md p-2 ${stat.color}`}
                 >
                   <Icon name={stat.icon} className="h-4 w-4" />
                 </span>
               </div>
 
-              <p className="mt-5 font-heading text-4xl font-extrabold text-primary">
+              <p className="mt-5 font-heading text-3xl font-bold text-primary">
                 {ready ? stat.value : "—"}
               </p>
 
@@ -560,14 +497,14 @@ export default function KomtingDashboard() {
         </div>
       </section>
 
-      <section className="grid gap-5 lg:grid-cols-2">
-        <div className="rounded-3xl border border-slate-200/80 bg-white p-6">
+      <section className="grid gap-3 lg:grid-cols-2">
+        <div className="rounded-lg border border-slate-200/80 bg-white p-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="font-heading text-base font-extrabold text-primary">
+            <h2 className="font-heading text-base font-bold text-primary">
               Perlu Perhatian
             </h2>
 
-            <span className="rounded-xl bg-amber-50 p-2 text-amber-800">
+            <span className="rounded-md bg-amber-50 p-2 text-amber-800">
               <Icon name="inbox" />
             </span>
           </div>
@@ -588,23 +525,23 @@ export default function KomtingDashboard() {
           <div className="mt-5 grid gap-2 sm:grid-cols-2">
             <Link
               href="/dashboard/komting/student-requests"
-              className="btn-outline rounded-xl text-xs"
+              className="btn-outline rounded-md text-xs"
             >
               Pengajuan Mahasiswa
             </Link>
 
             <Link
               href="/dashboard/komting/registrations"
-              className="btn-outline rounded-xl text-xs"
+              className="btn-outline rounded-md text-xs"
             >
               Pendaftaran Mahasiswa
             </Link>
           </div>
         </div>
 
-        <div className="rounded-3xl border border-slate-200/80 bg-white p-6">
+        <div className="rounded-lg border border-slate-200/80 bg-white p-4">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="font-heading text-base font-extrabold text-primary">
+            <h2 className="font-heading text-base font-bold text-primary">
               Keanggotaan Kelas
             </h2>
 
@@ -621,7 +558,7 @@ export default function KomtingDashboard() {
           </p>
 
           <div className="mt-5 grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-slate-200 p-4">
+            <div className="rounded-lg border border-slate-200 p-4">
               <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-muted">
                 <span
                   aria-hidden="true"
@@ -630,12 +567,12 @@ export default function KomtingDashboard() {
                 Mahasiswa Aktif
               </span>
 
-              <p className="mt-3 font-heading text-3xl font-extrabold text-primary">
+              <p className="mt-3 font-heading text-2xl font-bold text-primary">
                 {ready ? summary.activeStudents : "—"}
               </p>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 p-4">
+            <div className="rounded-lg border border-slate-200 p-4">
               <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold text-muted">
                 <span
                   aria-hidden="true"
@@ -644,7 +581,7 @@ export default function KomtingDashboard() {
                 Mahasiswa Nonaktif
               </span>
 
-              <p className="mt-3 font-heading text-3xl font-extrabold text-primary">
+              <p className="mt-3 font-heading text-2xl font-bold text-primary">
                 {ready ? summary.inactiveStudents : "—"}
               </p>
             </div>
@@ -660,7 +597,7 @@ export default function KomtingDashboard() {
           />
 
           <div>
-            <h2 className="font-heading text-lg font-extrabold text-primary">
+            <h2 className="font-heading text-lg font-bold text-primary">
               Akses Cepat
             </h2>
 
@@ -675,11 +612,11 @@ export default function KomtingDashboard() {
             <Link
               key={action.href}
               href={action.href}
-              className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm shadow-slate-200/20 transition hover:border-secondary/40 hover:shadow-md hover:shadow-slate-200/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              className="group flex flex-col rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20 transition hover:border-secondary/40 hover:shadow-md hover:shadow-slate-200/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               <div className="flex items-center justify-between">
                 <span
-                  className={`flex h-12 w-12 items-center justify-center rounded-2xl ${action.color}`}
+                  className={`flex h-12 w-12 items-center justify-center rounded-lg ${action.color}`}
                 >
                   <Icon name={action.icon} className="h-6 w-6" />
                 </span>
@@ -689,7 +626,7 @@ export default function KomtingDashboard() {
                 </span>
               </div>
 
-              <h3 className="mt-5 font-heading text-sm font-extrabold text-primary">
+              <h3 className="mt-5 font-heading text-sm font-bold text-primary">
                 {action.title}
               </h3>
 
