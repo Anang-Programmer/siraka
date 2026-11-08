@@ -1,7 +1,140 @@
 @import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-jakarta);
+
+  --color-primary: #1a3957;
+  --color-secondary: #29a9b8;
+  --color-ink: #0f172a;
+  --color-muted: #64748b;
+  --color-danger: #e00000;
+  --color-action: #ff9100;
+}
+
+@layer base {
+  body {
+    @apply bg-white font-sans text-ink;
+    line-height: 1.6;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading;
+    letter-spacing: -0.02em;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button:not(:disabled),
+  select:not(:disabled) {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background: #29a9b833;
+    color: #1a3957;
+  }
+}
+
 @layer components {
+  .surface-card {
+    @apply rounded-2xl border border-slate-200 bg-white p-5 shadow-sm;
+  }
+
+  .section-label {
+    @apply text-xs font-semibold uppercase tracking-widest text-muted;
+  }
+
+  .page-title {
+    @apply font-heading text-2xl font-extrabold text-primary sm:text-3xl;
+  }
+
+  .page-description {
+    @apply mt-2 text-sm leading-relaxed text-muted;
+  }
+
+  .form-label {
+    @apply mb-2 block text-sm font-semibold text-ink;
+  }
+
   .input-field {
-    @apply w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-800 outline-none transition;
-    @apply placeholder:text-slate-400 focus:border-slate-500 focus:ring-2 focus:ring-slate-100;
+    @apply w-full rounded-lg border border-slate-200 bg-slate-50;
+    @apply px-3 py-2.5 text-sm text-ink outline-none transition;
+    @apply placeholder:text-slate-400;
+    @apply focus:border-primary focus:ring-2 focus:ring-primary/15;
+    @apply disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-primary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2;
+    @apply rounded-lg bg-primary px-4 py-2.5;
+    @apply text-sm font-semibold text-white transition;
+    @apply hover:bg-primary/90;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2;
+    @apply focus-visible:outline-primary;
+    @apply disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-secondary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2;
+    @apply rounded-lg bg-secondary px-4 py-2.5;
+    @apply text-sm font-semibold text-ink transition;
+    @apply hover:bg-secondary/85;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2;
+    @apply focus-visible:outline-primary;
+    @apply disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-outline {
+    @apply inline-flex min-h-11 items-center justify-center gap-2;
+    @apply rounded-lg border border-slate-200 bg-white px-4 py-2.5;
+    @apply text-sm font-semibold text-primary transition;
+    @apply hover:bg-slate-50;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2;
+    @apply focus-visible:outline-primary;
+    @apply disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .btn-danger {
+    @apply inline-flex min-h-11 items-center justify-center gap-2;
+    @apply rounded-lg bg-danger px-4 py-2.5;
+    @apply text-sm font-semibold text-white transition;
+    @apply hover:bg-danger/90;
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2;
+    @apply focus-visible:outline-danger;
+    @apply disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 rounded-full;
+    @apply px-2.5 py-1 text-xs font-semibold;
+  }
+
+  .status-success {
+    @apply bg-emerald-50 text-emerald-700;
+  }
+
+  .status-warning {
+    @apply bg-amber-50 text-amber-800;
+  }
+
+  .status-danger {
+    @apply bg-red-50 text-red-700;
+  }
+
+  .status-neutral {
+    @apply bg-slate-100 text-slate-600;
+  }
+
+  .status-info {
+    @apply bg-cyan-50 text-cyan-800;
   }
 }
