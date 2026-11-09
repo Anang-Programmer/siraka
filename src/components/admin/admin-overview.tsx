@@ -619,7 +619,7 @@ export default function AdminOverview() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px] border-collapse text-left">
+            <table className="w-full min-w-190 border-collapse text-left">
               <caption className="sr-only">
                 Lima pengajuan booking terbaru
               </caption>
@@ -659,7 +659,7 @@ export default function AdminOverview() {
                         scope="row"
                         className="max-w-xs px-4 py-5 text-left font-normal"
                       >
-                        <p className="break-words text-xs font-bold leading-6 text-primary">
+                        <p className="warp-break-word text-xs font-bold leading-6 text-primary">
                           {booking.title}
                         </p>
 

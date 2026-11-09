@@ -157,7 +157,7 @@ function isActive(pathname: string, item: NavItem) {
   return item.exact
     ? pathname === item.href
     : pathname === item.href ||
-        pathname.startsWith(`${item.href}/`);
+    pathname.startsWith(`${item.href}/`);
 }
 
 export default function AdminShell({
@@ -174,6 +174,8 @@ export default function AdminShell({
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
+  const [isDesktop, setIsDesktop] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false);
   const [logoutError, setLogoutError] = useState("");
 
@@ -219,6 +221,8 @@ export default function AdminShell({
     const query = window.matchMedia("(min-width: 1024px)");
 
     function handleResize() {
+      setIsDesktop(query.matches);
+
       if (query.matches) {
         dialogRef.current?.close();
         setMobileOpen(false);
@@ -339,18 +343,16 @@ export default function AdminShell({
                   if (mobile) closeMobile();
                 }}
                 aria-current={active ? "page" : undefined}
-                className={`group flex items-center gap-3 rounded-lg px-3 py-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${
-                  active
-                    ? "bg-[#25465F] text-white ring-1 ring-inset ring-white/10"
-                    : "text-slate-300 hover:bg-white/[0.07] hover:text-white"
-                }`}
+                className={`group flex items-center gap-3 rounded-lg px-3 py-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white ${active
+                  ? "bg-[#25465F] text-white ring-1 ring-inset ring-white/10"
+                  : "text-slate-300 hover:bg-white/[0.07] hover:text-white"
+                  }`}
               >
                 <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${
-                    active
-                      ? "bg-white/10"
-                      : "bg-white/5 group-hover:bg-white/10"
-                  }`}
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${active
+                    ? "bg-white/10"
+                    : "bg-white/5 group-hover:bg-white/10"
+                    }`}
                 >
                   <Icon name={item.icon} />
                 </span>
@@ -361,11 +363,10 @@ export default function AdminShell({
                   </span>
 
                   <span
-                    className={`mt-1 block text-[10px] leading-5 ${
-                      active
-                        ? "text-slate-300"
-                        : "text-slate-400 group-hover:text-slate-300"
-                    }`}
+                    className={`mt-1 block text-[10px] leading-5 ${active
+                      ? "text-slate-300"
+                      : "text-slate-400 group-hover:text-slate-300"
+                      }`}
                   >
                     {item.description}
                   </span>
@@ -377,7 +378,7 @@ export default function AdminShell({
 
         <div aria-hidden="true" className="min-h-5 flex-1" />
 
-        
+
 
         <div className="shrink-0 border-t border-white/10 p-4">
           <div className="flex items-center gap-3">
@@ -427,13 +428,15 @@ export default function AdminShell({
       </a>
 
       <aside
+        id="admin-desktop-sidebar"
         aria-label="Sidebar Admin desktop"
-        className="fixed inset-y-0 left-0 z-30 hidden w-72 overflow-y-auto bg-[#122D46] lg:block"
+        className={`fixed inset-y-0 left-0 z-30 w-72 overflow-y-auto bg-[#122D46] ${desktopSidebarOpen ? "hidden lg:block" : "hidden"
+          }`}
       >
         {fullSidebar(false)}
       </aside>
 
-      
+
 
       <dialog
         ref={dialogRef}
@@ -466,22 +469,39 @@ export default function AdminShell({
         {fullSidebar(true)}
       </dialog>
 
-      <div className="flex min-h-screen min-w-0 flex-col lg:ml-72">
+      <div
+        className={`flex min-h-screen min-w-0 flex-col transition-[margin] duration-200 ${desktopSidebarOpen ? "lg:ml-72" : "lg:ml-0"
+          }`}
+      >
         <header className="sticky top-0 z-20 border-b border-slate-200/70 bg-white/95 px-4 backdrop-blur-xl sm:px-4 lg:px-6">
           <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-2">
             <button
-            ref={menuButtonRef}
-            type="button"
-            onClick={() => setMobileOpen(true)}
-            aria-label="Buka menu lengkap"
-            aria-expanded={mobileOpen}
-            aria-controls="admin-mobile-menu"
-            aria-haspopup="dialog"
-            title="Buka menu"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-primary hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-primary lg:hidden"
-          >
-            <Icon name="menu" className="h-6 w-6" />
-          </button>
+              ref={menuButtonRef}
+              type="button"
+              onClick={() => {
+                if (isDesktop) {
+                  setDesktopSidebarOpen((open) => !open);
+                } else {
+                  setMobileOpen(true);
+                }
+              }}
+              aria-label={
+                isDesktop
+                  ? desktopSidebarOpen
+                    ? "Tutup sidebar"
+                    : "Buka sidebar"
+                  : "Buka menu"
+              }
+              aria-expanded={isDesktop ? desktopSidebarOpen : mobileOpen}
+              aria-controls={
+                isDesktop ? "admin-desktop-sidebar" : "admin-mobile-menu"
+              }
+              aria-haspopup={isDesktop ? undefined : "dialog"}
+              title="Navigasi"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-primary hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-primary"
+            >
+              <Icon name="menu" className="h-6 w-6" />
+            </button>
             <div className="min-w-0 flex-1">
               <p className="flex items-center gap-2 text-[10px] font-medium text-slate-400">
                 <span>SIRAKA</span>
