@@ -206,7 +206,7 @@ export default function StudentRoomRequest() {
 
   const ready = !loading && !loadError && classInfo !== null;
   const busy = submitting || cancellingId !== null;
-  const inputClass = "input-field min-h-11 rounded-xl";
+  const inputClass = "input-field min-h-11 rounded-md";
 
   function update<K extends keyof FormState>(
     key: K,
@@ -572,14 +572,14 @@ export default function StudentRoomRequest() {
   ];
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
             Workspace / Layanan Mahasiswa
           </p>
 
-          <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
+          <h1 className="mt-2 font-heading text-2xl font-bold text-primary sm:text-2xl">
             Pengajuan Kebutuhan
           </h1>
 
@@ -593,7 +593,7 @@ export default function StudentRoomRequest() {
           type="button"
           onClick={() => void refreshData()}
           disabled={loading || busy}
-          className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
+          className="btn-outline w-fit shrink-0 rounded-md text-xs shadow-none"
         >
           {loading ? "Memuat..." : "↻ Muat Ulang"}
         </button>
@@ -602,7 +602,7 @@ export default function StudentRoomRequest() {
       {loadError && (
         <div
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
         >
           <p>{loadError}</p>
 
@@ -618,7 +618,7 @@ export default function StudentRoomRequest() {
       {actionError && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
         >
           {actionError}
         </p>
@@ -627,7 +627,7 @@ export default function StudentRoomRequest() {
       {success && (
         <p
           role="status"
-          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-7 text-emerald-700"
+          className="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-sm leading-7 text-emerald-700"
         >
           {success}
         </p>
@@ -640,34 +640,34 @@ export default function StudentRoomRequest() {
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 sm:p-6"
+            className="rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20 sm:p-4"
           >
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-xs font-semibold text-muted">
                 {stat.label}
               </h2>
 
-              <span className={`rounded-xl p-2 ${stat.color}`}>
+              <span className={`rounded-md p-2 ${stat.color}`}>
                 <RequestIcon className="h-4 w-4" />
               </span>
             </div>
 
-            <p className="mt-4 font-heading text-4xl font-extrabold text-primary">
+            <p className="mt-4 font-heading text-3xl font-bold text-primary">
               {ready ? stat.value : "—"}
             </p>
           </div>
         ))}
       </section>
 
-      <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/20">
-        <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-5 sm:flex-row sm:items-center sm:p-6">
+      <section className="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-none shadow-slate-200/20">
+        <div className="flex flex-col justify-between gap-4 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:p-4">
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-primary">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-primary">
               <RequestIcon className="h-6 w-6" />
             </span>
 
             <div>
-              <h2 className="font-heading text-base font-extrabold text-primary">
+              <h2 className="font-heading text-base font-bold text-primary">
                 Buat Pengajuan Baru
               </h2>
 
@@ -677,7 +677,7 @@ export default function StudentRoomRequest() {
             </div>
           </div>
 
-          <div className="w-fit rounded-xl border border-slate-200 px-3 py-2">
+          <div className="w-fit rounded-md border border-slate-200 px-3 py-2">
             <p className="text-[9px] font-semibold uppercase tracking-wider text-muted">
               Kelas Terdaftar
             </p>
@@ -695,11 +695,11 @@ export default function StudentRoomRequest() {
         <form
           onSubmit={handleSubmit}
           aria-busy={submitting}
-          className="p-5 sm:p-6"
+          className="p-4 sm:p-4"
         >
           <fieldset
             disabled={!ready || busy}
-            className="min-w-0 space-y-7 disabled:opacity-60"
+            className="min-w-0 space-y-5 disabled:opacity-60"
           >
             <legend className="sr-only">
               Formulir kebutuhan ruangan
@@ -846,7 +846,7 @@ export default function StudentRoomRequest() {
                 </h3>
               </div>
 
-              <div className="grid gap-5 md:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2">
                 <Field
                   id="request-room-type"
                   label="Jenis ruangan"
@@ -910,7 +910,7 @@ export default function StudentRoomRequest() {
               </p>
 
               {selectedRoom && (
-                <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
+                <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <p className="text-xs font-bold text-primary">
                       {selectedRoom.room_code}
@@ -971,7 +971,7 @@ export default function StudentRoomRequest() {
               </div>
             </section>
 
-            <div className="flex flex-col justify-between gap-5 border-t border-slate-100 pt-6 sm:flex-row sm:items-center">
+            <div className="flex flex-col justify-between gap-3 border-t border-slate-100 pt-6 sm:flex-row sm:items-center">
               <p className="max-w-xl text-[11px] leading-6 text-muted">
                 Kolom bertanda * wajib diisi. Pengajuan ini bukan
                 booking resmi. Komting akan meninjau dan
@@ -980,7 +980,7 @@ export default function StudentRoomRequest() {
 
               <button
                 type="submit"
-                className="btn-primary shrink-0 rounded-xl"
+                className="btn-primary shrink-0 rounded-md"
               >
                 {submitting
                   ? "Mengirim..."
@@ -1003,7 +1003,7 @@ export default function StudentRoomRequest() {
               className="h-6 w-1 rounded-full bg-secondary"
             />
 
-            <h2 className="font-heading text-lg font-extrabold text-primary">
+            <h2 className="font-heading text-lg font-bold text-primary">
               Riwayat Pengajuan
             </h2>
           </div>
@@ -1018,17 +1018,17 @@ export default function StudentRoomRequest() {
         {loading ? (
           <div
             role="status"
-            className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-sm text-muted"
+            className="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm text-muted"
           >
             Memuat riwayat pengajuan...
           </div>
         ) : loadError ? (
-          <p className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-sm text-muted">
+          <p className="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm text-muted">
             Riwayat belum dapat dimuat. Silakan tekan Muat Ulang.
           </p>
         ) : requests.length === 0 ? (
-          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-primary">
+          <div className="rounded-lg border border-slate-200 bg-white p-12 text-center">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100 text-primary">
               <RequestIcon className="h-7 w-7" />
             </span>
 
@@ -1052,11 +1052,11 @@ export default function StudentRoomRequest() {
               return (
                 <article
                   key={request.id}
-                  className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 sm:p-6"
+                  className="rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20 sm:p-4"
                 >
                   <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                     <div className="min-w-0">
-                      <h3 className="break-words font-heading text-base font-extrabold text-primary">
+                      <h3 className="break-words font-heading text-base font-bold text-primary">
                         {request.activity_title}
                       </h3>
 
@@ -1078,7 +1078,7 @@ export default function StudentRoomRequest() {
                     </span>
                   </div>
 
-                  <dl className="mt-5 grid gap-4 rounded-2xl border border-slate-100 p-4 sm:grid-cols-2 xl:grid-cols-4">
+                  <dl className="mt-5 grid gap-4 rounded-lg border border-slate-100 p-4 sm:grid-cols-2 xl:grid-cols-4">
                     {[
                       {
                         label: "Tanggal",
@@ -1151,7 +1151,7 @@ export default function StudentRoomRequest() {
                   )}
 
                   {request.response_note && (
-                    <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+                    <div className="mt-5 rounded-lg border border-slate-200 bg-white p-4">
                       <p className="text-[10px] font-bold uppercase tracking-widest text-primary">
                         Respons Komting
                       </p>
@@ -1170,7 +1170,7 @@ export default function StudentRoomRequest() {
                           void handleCancel(request)
                         }
                         disabled={busy || loading}
-                        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-red-200 px-4 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex min-h-11 items-center justify-center rounded-md border border-red-200 px-4 py-2 text-xs font-semibold text-red-700 transition hover:bg-red-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {cancellingId === request.id
                           ? "Membatalkan..."

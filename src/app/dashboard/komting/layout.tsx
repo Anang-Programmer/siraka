@@ -17,7 +17,7 @@ async function ProtectedKomtingShell({
 
 export default function KomtingLayout({ children }: { children: ReactNode }) {
   return (
-    <Suspense fallback={<p role="status" className="p-6">Memuat dashboard...</p>}>
+    <Suspense fallback={<p role="status" className="p-4">Memuat dashboard...</p>}>
       <ProtectedKomtingShell>{children}</ProtectedKomtingShell>
     </Suspense>
   );

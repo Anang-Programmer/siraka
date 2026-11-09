@@ -218,7 +218,7 @@ export default function BookingForm() {
     null,
   );
 
-  const inputClass = "input-field min-h-11 rounded-xl";
+  const inputClass = "input-field min-h-11 rounded-md";
 
   const selectedRoom = rooms.find(
     (room) => room.id === form.roomId,
@@ -546,13 +546,13 @@ export default function BookingForm() {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <section>
-        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+        <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
           Workspace / Reservasi Ruangan
         </p>
 
-        <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
+        <h1 className="mt-2 font-heading text-2xl font-bold text-primary sm:text-2xl">
           Ajukan Booking
         </h1>
 
@@ -565,7 +565,7 @@ export default function BookingForm() {
       {error && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-7 text-red-700"
         >
           {error}
         </p>
@@ -574,7 +574,7 @@ export default function BookingForm() {
       {success && (
         <section
           role="status"
-          className="rounded-2xl border border-emerald-200 bg-white p-5"
+          className="rounded-lg border border-emerald-200 bg-white p-4"
         >
           <h2 className="text-sm font-bold text-emerald-700">
             {success}
@@ -611,15 +611,15 @@ export default function BookingForm() {
         </section>
       )}
 
-      <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_300px]">
         <form
           onSubmit={handleSubmit}
           aria-busy={submitting}
-          className="min-w-0 rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 sm:p-6"
+          className="min-w-0 rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20 sm:p-4"
         >
           <fieldset
             disabled={submitting}
-            className="min-w-0 space-y-7 disabled:opacity-60"
+            className="min-w-0 space-y-5 disabled:opacity-60"
           >
             <legend className="sr-only">
               Formulir booking ruangan
@@ -690,7 +690,7 @@ export default function BookingForm() {
               />
 
               <div className="space-y-5">
-                <div className="grid gap-5 md:grid-cols-2">
+                <div className="grid gap-3 md:grid-cols-2">
                   <Field
                     id="booking-title"
                     label="Nama kegiatan *"
@@ -791,7 +791,7 @@ export default function BookingForm() {
                 description="Semua waktu menggunakan WIB, terlepas dari zona waktu perangkat."
               />
 
-              <div className="grid gap-5 md:grid-cols-2">
+              <div className="grid gap-3 md:grid-cols-2">
                 <Field
                   id="booking-start"
                   label="Mulai (WIB) *"
@@ -835,7 +835,7 @@ export default function BookingForm() {
                 description="Aktifkan jika pengajuan sesuai data KRS dan membutuhkan verifikasi dokumen."
               />
 
-              <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 p-4">
+              <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-4">
                 <input
                   type="checkbox"
                   checked={form.isKrsPriority}
@@ -867,7 +867,7 @@ export default function BookingForm() {
               </label>
 
               {form.isKrsPriority && (
-                <div className="mt-4 space-y-5 rounded-2xl border border-slate-200 p-4">
+                <div className="mt-4 space-y-5 rounded-lg border border-slate-200 p-4">
                   <Field
                     id="krs-document"
                     label="Dokumen KRS *"
@@ -883,7 +883,7 @@ export default function BookingForm() {
                         )
                       }
                       required
-                      className="block w-full text-xs text-muted file:mr-3 file:rounded-xl file:border-0 file:bg-slate-100 file:px-4 file:py-3 file:text-xs file:font-semibold file:text-primary"
+                      className="block w-full text-xs text-muted file:mr-3 file:rounded-md file:border-0 file:bg-slate-100 file:px-4 file:py-3 file:text-xs file:font-semibold file:text-primary"
                     />
                   </Field>
 
@@ -929,7 +929,7 @@ export default function BookingForm() {
                   Boolean(roomsError) ||
                   rooms.length === 0
                 }
-                className="btn-primary shrink-0 rounded-xl"
+                className="btn-primary shrink-0 rounded-md"
               >
                 {submitting
                   ? "Mengirim..."
@@ -947,13 +947,13 @@ export default function BookingForm() {
           aria-label="Ringkasan booking"
           className="space-y-4 xl:sticky xl:top-28"
         >
-          <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm">
-            <div className="bg-[#173A56] p-5 text-white">
-              <span className="inline-flex rounded-xl bg-white/10 p-2.5 text-cyan-100">
+          <section className="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-none">
+            <div className="bg-[#173A56] p-4 text-white">
+              <span className="inline-flex rounded-md bg-white/10 p-2.5 text-cyan-100">
                 <BuildingIcon />
               </span>
 
-              <h2 className="mt-4 font-heading text-base font-extrabold">
+              <h2 className="mt-4 font-heading text-base font-bold">
                 Ringkasan Booking
               </h2>
 
@@ -962,7 +962,7 @@ export default function BookingForm() {
               </p>
             </div>
 
-            <div className="space-y-5 p-5">
+            <div className="space-y-5 p-4">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted">
                   Ruangan
@@ -1071,7 +1071,7 @@ export default function BookingForm() {
             </div>
           </section>
 
-          <section className="rounded-2xl border border-dashed border-slate-300 bg-white p-4">
+          <section className="rounded-lg border border-dashed border-slate-300 bg-white p-4">
             <h2 className="text-xs font-bold text-primary">
               Tentang Jenis Booking
             </h2>

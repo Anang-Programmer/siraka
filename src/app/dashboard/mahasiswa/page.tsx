@@ -156,10 +156,10 @@ function ScheduleSection({
   showDate?: boolean;
 }) {
   return (
-    <section className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/30">
-      <div className="flex flex-col justify-between gap-3 border-b border-slate-100 px-5 py-5 sm:flex-row sm:items-center sm:px-6">
+    <section className="overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-none shadow-slate-200/30">
+      <div className="flex flex-col justify-between gap-3 border-b border-slate-100 px-5 py-5 sm:flex-row sm:items-center sm:px-4">
         <div>
-          <h2 className="font-heading text-base font-extrabold text-primary">
+          <h2 className="font-heading text-base font-bold text-primary">
             {title}
           </h2>
 
@@ -180,17 +180,17 @@ function ScheduleSection({
       {loading ? (
         <p
           role="status"
-          className="px-6 py-12 text-center text-sm text-muted"
+          className="px-4 py-12 text-center text-sm text-muted"
         >
           Memuat jadwal...
         </p>
       ) : failed ? (
-        <p className="px-6 py-12 text-center text-sm text-muted">
+        <p className="px-4 py-12 text-center text-sm text-muted">
           Jadwal belum dapat dimuat. Silakan muat ulang.
         </p>
       ) : bookings.length === 0 ? (
-        <div className="px-6 py-10 text-center">
-          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#F0F5FA] text-primary/60">
+        <div className="px-4 py-10 text-center">
+          <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-[#F0F5FA] text-primary/60">
             <Icon name="calendar" className="h-6 w-6" />
           </span>
 
@@ -226,13 +226,13 @@ function ScheduleSection({
             return (
               <article
                 key={booking.id}
-                className="flex flex-col gap-4 p-5 transition hover:bg-slate-50/60 sm:flex-row sm:items-center sm:p-6"
+                className="flex flex-col gap-4 p-4 transition hover:bg-slate-50/60 sm:flex-row sm:items-center sm:p-4"
               >
                 <div
                   aria-hidden="true"
-                  className="hidden h-16 w-16 shrink-0 flex-col items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 sm:flex"
+                  className="hidden h-16 w-16 shrink-0 flex-col items-center justify-center rounded-lg border border-slate-200 bg-slate-50 sm:flex"
                 >
-                  <span className="font-heading text-xl font-extrabold text-primary">
+                  <span className="font-heading text-xl font-bold text-primary">
                     {day}
                   </span>
 
@@ -523,14 +523,14 @@ export default function MahasiswaDashboardPage() {
   ];
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
             Workspace / Ringkasan
           </p>
 
-          <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
+          <h1 className="mt-2 font-heading text-2xl font-bold text-primary sm:text-2xl">
             Dashboard Mahasiswa
           </h1>
         </div>
@@ -539,7 +539,7 @@ export default function MahasiswaDashboardPage() {
           type="button"
           onClick={() => void refreshDashboard()}
           disabled={loading || !today}
-          className="inline-flex min-h-11 w-fit items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-primary shadow-sm transition hover:border-primary/30 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
+          className="inline-flex min-h-11 w-fit items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-primary shadow-none transition hover:border-primary/30 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Icon
             name="refresh"
@@ -552,106 +552,30 @@ export default function MahasiswaDashboardPage() {
       {error && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-700"
         >
           {error}
         </p>
       )}
 
-      <section className="relative overflow-hidden rounded-[28px] bg-[#173A56] p-6 text-white sm:p-8 lg:p-9">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(41,169,184,0.35),transparent_65%)]"
-        />
-
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-14 -top-28 h-80 w-80 rounded-full border border-white/10"
-        />
-
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -bottom-32 right-10 h-80 w-80 rounded-full border border-white/10"
-        />
-
-        <div className="relative flex flex-col justify-between gap-7 xl:flex-row xl:items-center">
-          <div className="max-w-xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1.5 text-[10px] font-semibold text-cyan-100">
-              <span
-                aria-hidden="true"
-                className="h-1.5 w-1.5 rounded-full bg-cyan-300"
-              />
-              Portal Akademik SIRAKA
-            </span>
-
-            <h2 className="mt-5 break-words font-heading text-2xl font-extrabold leading-tight sm:text-3xl">
-              Selamat datang,
-              <span className="mt-1 block text-[#86E0E6]">
-                {loading
-                  ? "..."
-                  : profile?.full_name || "Mahasiswa"}
-                .
-              </span>
-            </h2>
-
-            <p className="mt-4 max-w-md text-xs leading-7 text-slate-200 sm:text-sm">
-              Semua kebutuhan ruang dan kegiatan kelasmu dalam
-              satu tempat. Mulai dengan melihat jadwal atau
-              sampaikan rencana kegiatanmu.
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                href="/dashboard/mahasiswa/schedule"
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#86E0E6] px-4 py-2.5 text-xs font-bold text-[#123549] transition hover:bg-cyan-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-              >
-                Lihat Jadwal Ruangan
-                <Icon name="arrow" className="h-4 w-4" />
-              </Link>
-
-              <Link
-                href="/dashboard/mahasiswa/requests"
-                className="inline-flex min-h-11 items-center rounded-xl border border-white/25 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-              >
-                Ajukan Kebutuhan
-              </Link>
-            </div>
-          </div>
-
-          <div className="w-fit rounded-2xl border border-white/15 bg-white/[0.07] p-5 backdrop-blur-sm xl:max-w-56">
-            <Icon
-              name="calendar"
-              className="h-7 w-7 text-[#86E0E6]"
-            />
-
-            <p className="mt-4 text-[10px] font-semibold uppercase tracking-widest text-slate-300">
-              Hari ini
-            </p>
-
-            <p className="mt-2 text-sm font-bold leading-7">
-              {now === null ? "Memuat tanggal..." : dateLabel(now)}
-            </p>
-
-            <p className="mt-2 text-[10px] text-slate-300">
-              Waktu Indonesia Barat
-            </p>
-          </div>
-        </div>
+      <section className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-4">
+        <div><p className="text-sm font-semibold text-primary">{profile?.full_name || "Mahasiswa"}</p><p className="mt-1 text-xs text-muted">{now === null ? "Memuat tanggal..." : dateLabel(now)}</p></div>
+        <div className="flex flex-wrap gap-2"><Link href="/dashboard/mahasiswa/schedule" className="btn-primary">Lihat Jadwal</Link><Link href="/dashboard/mahasiswa/requests" className="btn-outline">Ajukan Kebutuhan</Link></div>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm shadow-slate-200/30">
+        <div className="rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/30">
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-semibold text-muted">
               Kelas Terdaftar
             </p>
 
-            <span className="rounded-xl bg-sky-50 p-2 text-sky-700">
+            <span className="rounded-md bg-sky-50 p-2 text-sky-700">
               <Icon name="rooms" />
             </span>
           </div>
 
-          <h2 className="mt-5 break-words font-heading text-xl font-extrabold text-primary">
+          <h2 className="mt-5 break-words font-heading text-xl font-bold text-primary">
             {ready
               ? studentClass?.class_name || "Belum ada kelas"
               : "—"}
@@ -679,19 +603,19 @@ export default function MahasiswaDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm shadow-slate-200/30">
+        <div className="rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/30">
           <div className="flex items-center justify-between gap-3">
             <p className="text-xs font-semibold text-muted">
               Jadwal Hari Ini
             </p>
 
-            <span className="rounded-xl bg-teal-50 p-2 text-teal-700">
+            <span className="rounded-md bg-teal-50 p-2 text-teal-700">
               <Icon name="calendar" />
             </span>
           </div>
 
           <div className="mt-5 flex items-baseline gap-2">
-            <p className="font-heading text-5xl font-extrabold tracking-tight text-primary">
+            <p className="font-heading text-5xl font-bold tracking-tight text-primary">
               {ready ? todayBookings.length : "—"}
             </p>
 
@@ -713,7 +637,7 @@ export default function MahasiswaDashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 md:col-span-2 xl:col-span-1">
+        <div className="rounded-lg border border-slate-200 bg-white p-4 md:col-span-2 xl:col-span-1">
   <div className="flex items-center justify-between gap-3">
     <p className="text-xs font-semibold text-muted">
       {ongoing
@@ -721,12 +645,12 @@ export default function MahasiswaDashboardPage() {
         : "Kegiatan Berikutnya"}
     </p>
 
-            <span className="rounded-xl bg-white/80 p-2 text-teal-700">
+            <span className="rounded-md bg-white/80 p-2 text-teal-700">
               <Icon name="calendar" />
             </span>
           </div>
 
-          <h2 className="mt-5 break-words font-heading text-lg font-extrabold text-primary">
+          <h2 className="mt-5 break-words font-heading text-lg font-bold text-primary">
             {!ready
               ? "—"
               : nextBooking?.title || "Belum ada kegiatan"}
@@ -764,7 +688,7 @@ export default function MahasiswaDashboardPage() {
           />
 
           <div>
-            <h2 className="font-heading text-lg font-extrabold text-primary">
+            <h2 className="font-heading text-lg font-bold text-primary">
               Mau melakukan apa?
             </h2>
 
@@ -779,11 +703,11 @@ export default function MahasiswaDashboardPage() {
             <Link
               key={action.href}
               href={action.href}
-              className="group flex flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm shadow-slate-200/20 transition duration-200 hover:border-secondary/50 hover:shadow-md hover:shadow-slate-200/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              className="group flex flex-col rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20 transition duration-200 hover:border-secondary/50 hover:shadow-md hover:shadow-slate-200/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
             >
               <div className="flex items-center justify-between">
                 <span
-                  className={`flex h-12 w-12 items-center justify-center rounded-2xl ${action.color}`}
+                  className={`flex h-12 w-12 items-center justify-center rounded-lg ${action.color}`}
                 >
                   <Icon name={action.icon} className="h-6 w-6" />
                 </span>
@@ -793,7 +717,7 @@ export default function MahasiswaDashboardPage() {
                 </span>
               </div>
 
-              <h3 className="mt-5 font-heading text-sm font-extrabold text-primary">
+              <h3 className="mt-5 font-heading text-sm font-bold text-primary">
                 {action.title}
               </h3>
 
@@ -824,9 +748,9 @@ export default function MahasiswaDashboardPage() {
         showDate
       />
 
-      <section className="flex flex-col justify-between gap-5 rounded-3xl border border-dashed border-slate-300 bg-white/50 p-6 sm:flex-row sm:items-center">
+      <section className="flex flex-col justify-between gap-3 rounded-lg border border-dashed border-slate-300 bg-white/50 p-4 sm:flex-row sm:items-center">
         <div className="flex items-start gap-4">
-          <span className="hidden rounded-2xl bg-white p-3 text-primary shadow-sm sm:inline-flex">
+          <span className="hidden rounded-lg bg-white p-3 text-primary shadow-none sm:inline-flex">
             <Icon name="request" className="h-6 w-6" />
           </span>
 
@@ -845,7 +769,7 @@ export default function MahasiswaDashboardPage() {
 
         <Link
           href="/dashboard/mahasiswa/requests"
-          className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-xs font-bold text-white transition hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-md bg-primary px-4 py-3 text-xs font-bold text-white transition hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
         >
           Buat Pengajuan
           <Icon name="arrow" className="h-4 w-4" />

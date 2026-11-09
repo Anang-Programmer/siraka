@@ -16,7 +16,7 @@ export default function StudentRoomRequestsPage() {
       fallback={
         <p
           role="status"
-          className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-muted"
+          className="rounded-md border border-slate-200 bg-white p-5 text-center text-sm text-muted"
         >
           Memuat formulir kebutuhan ruangan...
         </p>

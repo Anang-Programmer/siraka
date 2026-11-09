@@ -272,7 +272,7 @@ export default function RegisterForm() {
       <div className="space-y-5">
         <div
           role="status"
-          className="rounded-xl border border-emerald-200 bg-emerald-50 p-5"
+          className="rounded-md border border-emerald-200 bg-emerald-50 p-4"
         >
           <h2 className="text-lg font-bold text-emerald-800">
             Periksa Email Anda

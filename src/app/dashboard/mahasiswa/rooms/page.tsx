@@ -109,11 +109,11 @@ function RoomDetail({
           onClose();
         }
       }}
-      className="fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-xl overflow-y-auto rounded-3xl border-0 bg-white p-0 text-ink shadow-2xl backdrop:bg-slate-950/60 backdrop:backdrop-blur-sm"
+      className="fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-xl overflow-y-auto rounded-lg border-0 bg-white p-0 text-ink shadow-lg backdrop:bg-slate-950/60 backdrop:backdrop-blur-sm"
     >
       {room && (
         <>
-          <div className="relative overflow-hidden bg-[#173A56] p-6 text-white">
+          <div className="relative overflow-hidden bg-[#173A56] p-4 text-white">
             <div
               aria-hidden="true"
               className="pointer-events-none absolute -right-12 -top-16 h-48 w-48 rounded-full border border-white/10"
@@ -127,7 +127,7 @@ function RoomDetail({
 
                 <h2
                   id="room-detail-title"
-                  className="mt-4 break-words font-heading text-2xl font-extrabold"
+                  className="mt-4 break-words font-heading text-2xl font-bold"
                 >
                   {room.room_name}
                 </h2>
@@ -141,16 +141,16 @@ function RoomDetail({
                 type="button"
                 onClick={onClose}
                 aria-label="Tutup detail ruangan"
-                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-white"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-white/10 text-xl transition hover:bg-white/20 focus-visible:outline-2 focus-visible:outline-white"
               >
                 <span aria-hidden="true">×</span>
               </button>
             </div>
           </div>
 
-          <div className="space-y-6 p-6">
+          <div className="space-y-6 p-4">
             <dl className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-slate-200 p-4">
+              <div className="rounded-lg border border-slate-200 p-4">
                 <dt className="text-xs text-muted">
                   Kapasitas
                 </dt>
@@ -159,7 +159,7 @@ function RoomDetail({
                 </dd>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 p-4">
+              <div className="rounded-lg border border-slate-200 p-4">
                 <dt className="text-xs text-muted">
                   Status Data
                 </dt>
@@ -188,7 +188,7 @@ function RoomDetail({
                   {room.facilities.map((facility, index) => (
                     <li
                       key={`${facility}-${index}`}
-                      className="flex items-start gap-2 rounded-xl border border-slate-200 px-3 py-3 text-xs text-primary"
+                      className="flex items-start gap-2 rounded-md border border-slate-200 px-3 py-3 text-xs text-primary"
                     >
                       <span
                         aria-hidden="true"
@@ -219,7 +219,7 @@ function RoomDetail({
               </p>
             </section>
 
-            <p className="rounded-2xl bg-slate-50 p-4 text-xs leading-6 text-muted">
+            <p className="rounded-lg bg-slate-50 p-4 text-xs leading-6 text-muted">
               Status aktif menunjukkan ruangan terdaftar aktif
               dalam sistem. Periksa jadwal untuk mengetahui
               ketersediaannya pada waktu tertentu.
@@ -227,7 +227,7 @@ function RoomDetail({
 
             <Link
               href="/dashboard/mahasiswa/schedule"
-              className="btn-primary w-full rounded-xl"
+              className="btn-primary w-full rounded-md"
             >
               Lihat Jadwal &amp; Ketersediaan
               <span aria-hidden="true">→</span>
@@ -358,14 +358,14 @@ export default function MahasiswaRoomsPage() {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
       <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted">
+          <p className="text-[10px] font-bold uppercase tracking-wide text-muted">
             Workspace / Fasilitas Kampus
           </p>
 
-          <h1 className="mt-2 font-heading text-2xl font-extrabold text-primary sm:text-3xl">
+          <h1 className="mt-2 font-heading text-2xl font-bold text-primary sm:text-2xl">
             Informasi Ruangan
           </h1>
 
@@ -378,7 +378,7 @@ export default function MahasiswaRoomsPage() {
           type="button"
          onClick={() => void refreshRooms()}
           disabled={loading}
-          className="btn-outline w-fit shrink-0 rounded-xl text-xs shadow-sm"
+          className="btn-outline w-fit shrink-0 rounded-md text-xs shadow-none"
         >
           {loading ? "Memuat..." : "↻ Muat Ulang"}
         </button>
@@ -414,19 +414,19 @@ export default function MahasiswaRoomsPage() {
         ].map((stat) => (
           <div
             key={stat.label}
-            className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/30 sm:p-6"
+            className="rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/30 sm:p-4"
           >
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-xs font-semibold text-muted">
                 {stat.label}
               </h2>
 
-              <span className={`rounded-xl p-2 ${stat.color}`}>
+              <span className={`rounded-md p-2 ${stat.color}`}>
                 <BuildingIcon />
               </span>
             </div>
 
-            <p className="mt-4 font-heading text-4xl font-extrabold text-primary">
+            <p className="mt-4 font-heading text-3xl font-bold text-primary">
               {ready
                 ? String(stat.value).padStart(2, "0")
                 : "—"}
@@ -439,8 +439,8 @@ export default function MahasiswaRoomsPage() {
         ))}
       </section>
 
-      <section className="rounded-3xl border border-slate-200/80 bg-white p-5 shadow-sm shadow-slate-200/20 sm:p-6">
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
+      <section className="rounded-lg border border-slate-200/80 bg-white p-4 shadow-none shadow-slate-200/20 sm:p-4">
+        <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
           <div>
             <label
               htmlFor="room-search"
@@ -469,7 +469,7 @@ export default function MahasiswaRoomsPage() {
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Cari nama, kode, gedung, atau fasilitas..."
-                className="input-field min-h-11 rounded-xl pl-11"
+                className="input-field min-h-11 rounded-md pl-11"
               />
             </div>
           </div>
@@ -479,16 +479,16 @@ export default function MahasiswaRoomsPage() {
               Jenis ruangan
             </legend>
 
-            <div className="flex flex-wrap gap-1 rounded-2xl bg-slate-100 p-1">
+            <div className="flex flex-wrap gap-1 rounded-lg bg-slate-100 p-1">
               {filters.map((item) => (
                 <button
                   key={item.value}
                   type="button"
                   aria-pressed={filter === item.value}
                   onClick={() => setFilter(item.value)}
-                  className={`min-h-10 rounded-xl px-3 py-2 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-primary ${
+                  className={`min-h-10 rounded-md px-3 py-2 text-[11px] font-semibold transition focus-visible:outline-2 focus-visible:outline-primary ${
                     filter === item.value
-                      ? "bg-white text-primary shadow-sm"
+                      ? "bg-white text-primary shadow-none"
                       : "text-muted hover:text-primary"
                   }`}
                 >
@@ -521,7 +521,7 @@ export default function MahasiswaRoomsPage() {
       {error && (
         <p
           role="alert"
-          className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+          className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
         >
           {error}
         </p>
@@ -535,7 +535,7 @@ export default function MahasiswaRoomsPage() {
               className="h-6 w-1 rounded-full bg-secondary"
             />
 
-            <h2 className="font-heading text-lg font-extrabold text-primary">
+            <h2 className="font-heading text-lg font-bold text-primary">
               Jelajahi Ruangan
             </h2>
           </div>
@@ -553,7 +553,7 @@ export default function MahasiswaRoomsPage() {
         {loading ? (
           <div
             role="status"
-            className="rounded-3xl border border-slate-200 bg-white p-12 text-center"
+            className="rounded-lg border border-slate-200 bg-white p-12 text-center"
           >
             <div
               aria-hidden="true"
@@ -565,12 +565,12 @@ export default function MahasiswaRoomsPage() {
             </p>
           </div>
         ) : error ? (
-          <p className="rounded-3xl border border-slate-200 bg-white p-10 text-center text-sm text-muted">
+          <p className="rounded-lg border border-slate-200 bg-white p-10 text-center text-sm text-muted">
             Data belum dapat dimuat. Silakan tekan Muat Ulang.
           </p>
         ) : filteredRooms.length === 0 ? (
-          <div className="rounded-3xl border border-slate-200 bg-white p-12 text-center">
-            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-50 text-primary">
+          <div className="rounded-lg border border-slate-200 bg-white p-12 text-center">
+            <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-lg bg-slate-50 text-primary">
               <BuildingIcon className="h-7 w-7" />
             </span>
 
@@ -590,27 +590,27 @@ export default function MahasiswaRoomsPage() {
               <button
                 type="button"
                 onClick={resetFilters}
-                className="btn-outline mt-5 rounded-xl text-xs"
+                className="btn-outline mt-5 rounded-md text-xs"
               >
                 Tampilkan Semua
               </button>
             )}
           </div>
         ) : (
-          <div className="grid gap-5 md:grid-cols-2">
+          <div className="grid gap-3 md:grid-cols-2">
             {filteredRooms.map((room) => (
               <article
                 key={room.id}
-                className="group flex min-w-0 flex-col overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-sm shadow-slate-200/20 transition hover:border-secondary/40 hover:shadow-md hover:shadow-slate-200/40"
+                className="group flex min-w-0 flex-col overflow-hidden rounded-lg border border-slate-200/80 bg-white shadow-none shadow-slate-200/20 transition hover:border-secondary/40 hover:shadow-md hover:shadow-slate-200/40"
               >
-                <div className="relative overflow-hidden bg-[#173A56] px-5 py-5 sm:px-6">
+                <div className="relative overflow-hidden bg-[#173A56] px-5 py-5 sm:px-4">
                   <div
                     aria-hidden="true"
                     className="pointer-events-none absolute -right-8 -top-12 h-40 w-40 rounded-full border border-white/10"
                   />
 
                   <div className="relative flex items-center justify-between gap-3">
-                    <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-cyan-100">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-white/10 text-cyan-100">
                       <BuildingIcon className="h-6 w-6" />
                     </span>
 
@@ -627,12 +627,12 @@ export default function MahasiswaRoomsPage() {
                     {typeLabel(room.room_type)}
                   </p>
 
-                  <h3 className="relative mt-2 break-words font-heading text-xl font-extrabold text-white">
+                  <h3 className="relative mt-2 break-words font-heading text-xl font-bold text-white">
                     {room.room_name}
                   </h3>
                 </div>
 
-                <div className="flex flex-1 flex-col p-5 sm:p-6">
+                <div className="flex flex-1 flex-col p-4 sm:p-4">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <span className="rounded-lg bg-slate-100 px-3 py-1.5 text-[11px] font-bold tracking-wide text-primary">
                       {room.room_code}
@@ -683,7 +683,7 @@ export default function MahasiswaRoomsPage() {
                     onClick={() => setSelectedRoom(room)}
                     aria-haspopup="dialog"
                     aria-label={`Lihat detail ${room.room_name}`}
-                    className="mt-auto inline-flex min-h-11 items-center justify-between gap-3 rounded-xl bg-slate-50 px-4 py-3 text-xs font-bold text-primary transition hover:bg-primary hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+                    className="mt-auto inline-flex min-h-11 items-center justify-between gap-3 rounded-md bg-slate-50 px-4 py-3 text-xs font-bold text-primary transition hover:bg-primary hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
                   >
                     Lihat Detail Ruangan
                     <span aria-hidden="true">→</span>
