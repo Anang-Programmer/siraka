@@ -235,7 +235,7 @@ async function RegistrationStatusContent() {
                 Status Pendaftaran
               </h1>
 
-              <p className="mt-3 break-words text-sm leading-7 text-slate-200">
+              <p className="mt-3 wrap-break-word text-sm leading-7 text-slate-200">
                 Halo, {displayName}.
               </p>
             </div>
@@ -275,7 +275,7 @@ async function RegistrationStatusContent() {
                     Kelas
                   </dt>
 
-                  <dd className="mt-2 break-words text-sm font-semibold leading-7 text-primary">
+                  <dd className="mt-2 wrap-break-word text-sm font-semibold leading-7 text-primary">
                     {className}
                   </dd>
                 </div>
@@ -298,7 +298,7 @@ async function RegistrationStatusContent() {
                   Alasan Penolakan
                 </h3>
 
-                <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-muted">
+                <p className="mt-2 whitespace-pre-wrap wrap-break-word text-sm leading-7 text-muted">
                   {request.rejection_reason ||
                     "Alasan belum tersedia. Silakan hubungi pihak peninjau."}
                 </p>
