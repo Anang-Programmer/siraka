@@ -17,9 +17,11 @@ export default function LogoutButton() {
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.signOut();
+      
       if (error) throw error;
       router.replace("/login");
-      router.refresh();
+      
+      /// router.refresh();
     } catch (err) {
       setError(getErrorMessage(err, "Gagal keluar. Silakan coba lagi."));
       setLoading(false);

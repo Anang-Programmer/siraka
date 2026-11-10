@@ -73,9 +73,9 @@ export default function LoginForm() {
           loginError?.code === "invalid_credentials"
             ? "Email atau kata sandi tidak valid."
             : getErrorMessage(
-                loginError,
-                "Login gagal. Silakan coba lagi.",
-              ),
+              loginError,
+              "Login gagal. Silakan coba lagi.",
+            ),
         );
 
         setLoading(false);
@@ -108,11 +108,12 @@ export default function LoginForm() {
         return;
       }
 
-      router.replace(
-        profile.is_active ? "/" : "/registration-status",
-      );
+      const destination = profile.is_active
+        ? "/"
+        : "/registration-status";
 
-      router.refresh();
+      setLoading(false);
+      router.replace(destination);
     } catch (err) {
       console.error("Login:", err);
 
